@@ -9,39 +9,53 @@
 <body>
     <!-- 头部 -->
     <header>
-        <h1>皮皮的AI探索记</h1>
+        <h1 class="site-title">皮皮的AI探索记</h1>
+        <!-- 导航栏 -->
+        <nav>
+            <div class="nav-wrapper">
+                <ul>
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="#" onclick="loadPhotos()">ChatGPT</a>
+                        <ul class="sub-menu">
+                            <li><a href="#" onclick="loadPhotos()">皮皮画廊</a></li>
+                            <li><a href="#" onclick="loadPhotos()">Prompt</a></li>
+                            <li><a href="#" onclick="loadPhotos()">经典使用案例</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" onclick="loadPhotos()">MidJourney</a>
+                        <ul class="sub-menu">
+                            <li><a href="#" onclick="loadPhotos()">Prompt</a></li>
+                            <li><a href="#" onclick="loadPhotos()">收藏作品</a></li>  
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" onclick="loadPhotos()">Stable Diffusion </a>                     
+                        <ul class="sub-menu">
+                            <li><a href="#" onclick="loadPhotos()">Prompt</a></li>
+                            <li><a href="#" onclick="loadPhotos()">收藏作品</a></li>  
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
     </header>
 
-    <!-- 导航栏 -->
-    <nav>
-        <ul>
-            <li>
-                <a href="#" onclick="loadPhotos()">ChatGPT</a>
-                <ul class="sub-menu">
-                    <li><a href="#" onclick="loadPhotos()">皮皮画廊</a></li>
-                    <li><a href="#" onclick="loadPhotos()">Prompt</a></li>
-                    <li><a href="#" onclick="loadPhotos()">经典使用案例</a></li>
-                </ul>
-            </li>
-            <li>
-                MidJourney
-                <ul class="sub-menu">
-                    <li><a href="#" onclick="loadPhotos()">Prompt</a></li>
-                    <li><a href="#" onclick="loadPhotos()">收藏作品</a></li>  
-                </ul>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- 脚部 -->
-    <footer>
-        <p>版权所有 &copy; 皮皮的AI探索记</p>
-    </footer>
-    <div class="pagination-container">
-        <button id="prevBtn" onclick="prevPage()">&#9001;</button>
-        <button id="nextBtn" onclick="nextPage()">&#9002;</button>
+    <div class="footer-container">
+        <div class="pagination-container">
+            <button id="prevBtn" onclick="prevPage()">&#9001;</button>
+            <button id="nextBtn" onclick="nextPage()">&#9002;</button>
+        </div>
+        <footer>
+            <p>版权所有 &copy; 皮皮的AI探索记</p>
+        </footer>
     </div>
+
     <div id="gallery"></div>
+
     <script src="photos.js"></script>
     <script>
         var currentPage = 0;
