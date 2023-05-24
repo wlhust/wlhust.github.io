@@ -1,0 +1,134 @@
+/* Google字体链接 */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+
+/* 渐变背景 */
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+}
+
+/* 渐变背景动画 */
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    color: white;
+}
+
+nav ul {
+    padding: 0;
+    list-style: none;
+    display: flex; /* 使用 flex 布局 */
+    justify-content: center; /* 水平居中 */
+}
+
+nav ul li {
+    /* ...保留你之前定义的其他样式... */
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 10px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    transition: background 0.5s ease, box-shadow 0.5s ease;
+
+    /* 添加新的样式 */
+    position: relative;
+}
+
+nav ul li .sub-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    transition: opacity 0.5s ease;
+    flex-direction: row;  /* 新增这行代码，让二级主题在横向排列 */
+}
+
+nav ul li .sub-menu li {
+    /* 使二级主题的字体变小 */
+    font-size: 0.8em;
+    /* 添加一些边距，使二级主题在横向排列时有一些间距 */
+    margin-right: 10px;
+}
+
+
+nav ul li:hover {
+    /* ...保留你之前定义的其他样式... */
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    
+    /* 添加新的样式 */
+    transform: scale(1.1);
+}
+
+nav ul li:hover .sub-menu {
+    display: flex;  /* 这行代码的意思是，在鼠标悬停在一级主题时，显示二级主题 */
+}
+
+nav ul li a {
+    display: block;
+    padding: 0 10px;
+    color: #333;
+    text-decoration: none;
+    transition: color 0.5s ease, transform 0.3s ease; /* 添加 transform 的过渡效果 */
+}
+
+nav ul li:hover a {
+    color: #0066cc;
+    transform: scale(1.1); /* 添加鼠标悬停时的放大效果 */
+}
+
+nav ul ul {
+    display: none;
+}
+
+nav ul li:hover ul {
+    display: block;
+}
+
+
+#gallery {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
+
+#gallery img {
+  width: 18%;
+  margin: 10px;
+}
+
+.gallery-image {
+  width: 18%;
+  margin: 10px;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px; /* 根据需要调整底部栏的高度 */
+  background-color: #f1f1f1;
+  padding: 10px;
+  text-align: center;
+}
+
+#pagination {
+  margin-bottom: 5px;
+}
