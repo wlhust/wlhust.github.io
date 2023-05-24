@@ -43,21 +43,14 @@
     </footer>
 
     <div id="gallery"></div>
+    <script src="photos.js"></script>
     <script>
         var currentPage = 0;
         var photosPerPage = 5;
         var photos = []; // 全局变量
 
         function loadPhotos(subTopic) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', 'load-photos.php', true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    photos = JSON.parse(xhr.responseText);
-                    displayPhotos();
-                }
-            };
-            xhr.send();
+            displayPhotos();
         }
 
         function displayPhotos() {
@@ -82,7 +75,7 @@
             prevBtn.style.display = currentPage === 0 ? 'none' : 'block';
             nextBtn.style.display = currentPage === totalPages - 1 ? 'none' : 'block';
         }
-
+        
         function prevPage() {
             if (currentPage > 0) {
                 currentPage--;
