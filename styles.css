@@ -129,6 +129,21 @@ footer {
   text-align: center;
 }
 
-#pagination {
-  margin-bottom: 5px;
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+.pagination-container button {
+    width: 60px;
+    height: 40px;
+    font-size: 18px;
+    border-radius: 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    margin: 0 10px;
+    cursor: pointer;
 }
