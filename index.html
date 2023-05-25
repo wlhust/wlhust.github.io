@@ -55,8 +55,6 @@
     </div>
 
     <div id="gallery"></div>
-
-    <script src="photos.js"></script>
     <script>
         var currentPage = 0;
         var photosPerPage = 5;
@@ -110,6 +108,34 @@
 
             prevBtn.style.display = currentPage === 0 ? 'none' : 'block';
             nextBtn.style.display = currentPage === totalPages - 1 ? 'none' : 'block';
+
+            var images = document.querySelectorAll('.gallery-image');
+            images.forEach(function(image) {
+                image.addEventListener('click', function(event) {
+                    if (image.classList.contains('zoomed-in')) {
+                        image.classList.remove('zoomed-in');
+                    } else {
+                        image.classList.add('zoomed-in');
+                        var viewportHeight = window.innerHeight;
+                        var imageHeight = image.offsetHeight;
+                        var topOffset = (viewportHeight - imageHeight) / 2;
+                        image.style.top = window.pageYOffset + topOffset + 'px';
+                    }
+                });
+            });
+
+            // 为文档的其他区域添加点击事件监听器
+            document.addEventListener('click', function(event) {
+              var target = event.target;
+              // 检查目标元素是否是图片或包含图片的区域
+              if (!target.classList.contains('gallery-image') && !target.closest('.gallery-image')) {
+                // 移除放大样式类
+                images.forEach(function(image) {
+                  image.classList.remove('zoomed-in');
+                  image.style.top = ''; // 清除设置的top值，恢复图片的原始位置
+                });
+              }
+            });
         }
         
         function prevPage() {
@@ -126,6 +152,9 @@
                 displayPhotos();
             }
         }
+    </script>
+    <script>
+ 
     </script>
 </body>
 </html>
