@@ -123,26 +123,32 @@ nav ul li:hover ul {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 #gallery {
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
 }
 
 #gallery img {
-  width: 18%;
-  margin: 10px;
+    width: 18%;
+    margin: 10px;
 }
 
 .gallery-image {
-  width: 18%;
-  margin: 10px;
-  animation: fadeIn 1s ease-in-out;
+    width: 18%;
+    margin: 10px;
+    animation: fadeIn 1s ease-in-out;
+    transition: transform 0.3s ease; /* 添加过渡效果 */
+}
+
+.gallery-image:hover {
+    transform: scale(1.03);
+    transition: transform 0.3s ease;
 }
 
 footer {
@@ -188,9 +194,11 @@ footer {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.5); /* 修改这行 */
-    z-index: 999;
+    transform: translate(-50%, -10%) scale(1.5); /* 放大1.5倍 */
+    z-index: 999; 
+    transition: transform 0.3s ease; /* 添加过渡效果 */
 }
+
 
 
 

@@ -112,30 +112,39 @@
             var images = document.querySelectorAll('.gallery-image');
             images.forEach(function(image) {
                 image.addEventListener('click', function(event) {
-                    if (image.classList.contains('zoomed-in')) {
-                        image.classList.remove('zoomed-in');
-                    } else {
-                        image.classList.add('zoomed-in');
-                        var viewportHeight = window.innerHeight;
-                        var imageHeight = image.offsetHeight;
-                        var topOffset = (viewportHeight - imageHeight) / 2;
-                        image.style.top = window.pageYOffset + topOffset + 'px';
-                    }
+                    // 创建新的img元素
+                    var zoomedImage = document.createElement('img');
+                    // 复制图片的src
+                    zoomedImage.src = image.src;
+                    // 添加放大样式类
+                    zoomedImage.classList.add('zoomed-in', 'gallery-image');
+                    // 添加图片到body
+                    document.body.appendChild(zoomedImage);
+                    // 设置图片居中显示
+                    var viewportHeight = window.innerHeight;
+                    var imageHeight = image.offsetHeight;
+                    var topOffset = (viewportHeight - imageHeight * 1.5) / 2;
+                    zoomedImage.style.top = topOffset + 'px';
+                    // 阻止事件冒泡，防止触发取消放大的逻辑
+                    event.stopPropagation();
                 });
             });
 
             // 为文档的其他区域添加点击事件监听器
             document.addEventListener('click', function(event) {
-              var target = event.target;
-              // 检查目标元素是否是图片或包含图片的区域
-              if (!target.classList.contains('gallery-image') && !target.closest('.gallery-image')) {
-                // 移除放大样式类
-                images.forEach(function(image) {
-                  image.classList.remove('zoomed-in');
-                  image.style.top = ''; // 清除设置的top值，恢复图片的原始位置
+                var target = event.target;
+                // 检查目标元素是否是复制的图片
+                if (target.classList.contains('zoomed-in')) {
+                // 如果是复制的图片，什么都不做
+                return;
+                }
+                // 否则，查找并移除所有复制的图片
+                var zoomedImages = document.querySelectorAll('.zoomed-in');
+                zoomedImages.forEach(function(image) {
+                document.body.removeChild(image);
                 });
-              }
             });
+
         }
         
         function prevPage() {
