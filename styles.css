@@ -65,7 +65,7 @@ nav ul li {
     display: inline-block;
     background: transparent;
     margin: 10px;
-    padding: 10px 5px;
+    padding: 5px 1px;
     border-radius: 10px;
     transition: background 0.5s ease, box-shadow 0.5s ease;
     margin-left: 2px;
@@ -97,7 +97,8 @@ nav ul li .sub-menu li a {
 
 nav ul li:hover {
     /* ...保留你之前定义的其他样式... */
-    background: rgba(255, 255, 255, 0.7);
+    /*background: rgba(255, 255, 255, 0.7);*/
+    background: transparent;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     
     /* 添加新的样式 */
@@ -120,6 +121,21 @@ nav ul ul {
 
 nav ul li:hover ul {
     display: block;
+}
+
+nav ul li .line {
+  position: relative;
+  bottom: -5px;;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: #66FFFF;
+  transition: all 0.5s ease;
+  transform: translateX(-50%);
+}
+
+nav ul li:hover .line {
+  width: 100%;
 }
 
 @keyframes fadeIn {
