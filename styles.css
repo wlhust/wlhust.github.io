@@ -38,6 +38,26 @@ header {
     margin: 0;
 }
 
+/* 定义搜索框的默认样式 */
+#search-bar {
+    width: 200px;
+    height: 20px;
+    padding: 5px;
+    left: 50px;
+    border: none;
+    border-radius: 10px;
+    transition: width 0.5s ease; /* 用于定义宽度变化的过渡效果 */
+    margin-right: auto;  /* 让搜索框保持在右侧 */
+    margin-top: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* 定义搜索框获得焦点时的样式 */
+#search-bar:focus {
+    width: 300px; /* 搜索框焦点时宽度增加50% */
+    outline: none;
+}
+
 nav ul {
     font-size: 1em;
     padding: 0;
