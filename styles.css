@@ -1,19 +1,27 @@
 /* Google字体链接 */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Hind&family=Ubuntu&display=swap');
+
 
 
 /* 渐变背景 */
-body {
+/*body {
     margin: 0;
     font-family: 'Roboto', sans-serif;
     background: linear-gradient(-45deg, #ee7752, #23a6d5, #23d5ab);
     background-size: 400% 400%;
     animation: gradient 15s ease infinite;
+}*/
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #f1f1f1;
 }
 
 /* 渐变背景动画 */
-@keyframes gradient {
+/*@keyframes gradient {
     0% {
         background-position: 0% 50%;
     }
@@ -23,33 +31,57 @@ body {
     100% {
         background-position: 0% 50%;
     }
+}*/
+
+.logo {
+  height: 45px; /* 调整logo的高度 */
+  margin-right: -400px; /* 在logo右边添加一些空间 */
+  margin-left: 60px;
+  border-radius: 50%;
+  transition: transform 2s;
+}
+
+.logo:hover {
+  transform: rotate(360deg);  /* 顺时针旋转360度 */
 }
 
 header {
+    /*width: 00px;*/
+    height: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 20px;
+    background-color: #CB5747;
+}
+
+.title-container {
+    position: absolute;  /*设置为绝对定位*/
+    left: 140px;
+    top: 12px;
     color: white;
-    font-family: 'Roboto'; /* 新添加的行 */
 }
 
 .site-title {
     margin: 0;
+    font-family: 'Roboto'; /* 新添加的行 */
+    font-size: 1.5em;
 }
 
 /* 定义搜索框的默认样式 */
 #search-bar {
+    /*padding-left: 20px;*/
     width: 200px;
     height: 20px;
     padding: 5px;
     left: 50px;
     border: none;
-    border-radius: 10px;
+    border-radius: 50px;
     transition: width 0.5s ease; /* 用于定义宽度变化的过渡效果 */
-    margin-right: auto;  /* 让搜索框保持在右侧 */
-    margin-top: 10px;
-    background-color: rgba(255, 255, 255, 0.7);
+    margin-top: 7px;
+    margin-right: 20px;
+    color: #FFFFFF;
+    background-color: #A24639;
 }
 
 /* 定义搜索框获得焦点时的样式 */
@@ -57,6 +89,37 @@ header {
     width: 250px; /* 搜索框焦点时宽度增加50% */
     outline: none;
 }
+
+#search-bar::placeholder {
+    color: white;
+}
+
+.icon-search {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    margin: 2px 0 0 3px;
+    -webkit-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    color: white;
+    border: solid 2px currentColor;
+    border-radius: 50%;
+    left: 80px;
+    top: 10px;
+}
+
+/*.icon-search:before {
+    position: absolute;
+    top: 11px;
+    left: 3px;
+    width: 2px;
+    height: 4px;
+    content: '';
+    background-color: currentColor;
+}*/
 
 nav ul {
     font-size: 1em;
@@ -68,10 +131,10 @@ nav ul {
 nav ul li a {
     display: inline-block; /* 修改这一行 */
     padding: 0 10px;
-    color: #333;
+    color: white;
     text-decoration: none;
     transition: color 0.5s ease, transform 0.3s ease;
-    font-family: 'Lobster', cursive; /* 新添加的行 */
+    font-family: 'Ubuntu'; /* 新添加的行 */
 }
 
 .nav-wrapper {
@@ -84,7 +147,7 @@ nav ul li a {
 nav ul li {
     display: inline-block;
     background: transparent;
-    margin: 10px;
+    margin: 5px;
     padding: 5px 1px;
     border-radius: 10px;
     transition: background 0.5s ease, box-shadow 0.5s ease;
@@ -110,7 +173,7 @@ nav ul li .sub-menu li {
 }
 
 nav ul li .sub-menu li a {
-    color: #00E3E3;
+    color: black;
     /*font-family: 'Lobster', cursive; /* 新添加的行 */*/
 }
 
