@@ -59,7 +59,7 @@ header {
     position: absolute;  /*设置为绝对定位*/
     left: 140px;
     top: 12px;
-    color: white;
+    color: #F5DDDA;
 }
 
 .site-title {
@@ -131,7 +131,7 @@ nav ul {
 nav ul li a {
     display: inline-block; /* 修改这一行 */
     padding: 0 10px;
-    color: white;
+    color: #F5DDDA;
     text-decoration: none;
     transition: color 0.5s ease, transform 0.3s ease;
     font-family: 'Ubuntu'; /* 新添加的行 */

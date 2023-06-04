@@ -54,7 +54,8 @@
             </div>
         </nav>
     </header>
-
+    <button id="myButton">获取图片</button>
+    <div id="imageDisplay"></div>
     <div class="footer-container">
         <div class="pagination-container">
             <button id="prevBtn" onclick="prevPage()">&#9001;</button>
@@ -174,7 +175,46 @@
         }
     </script>
     <script>
- 
+        document.getElementById('myButton').addEventListener('click', function() {
+          console.log('Button clicked, sending request...');
+          fetch('http://127.0.0.1:7860/sdapi/v1/txt2img', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: 'puppy dog',
+              steps: 5
+            }),
+          })
+          .then(response => {
+            console.log('Response received:', response);
+            return response.json();
+          })
+          .then(data => {
+            console.log('Data received:', data);
+            const images = data.images;
+            const imageDisplay = document.getElementById('imageDisplay');
+            imageDisplay.innerHTML = '';  // 清空当前显示的图片
+
+            images.forEach((image, i) => {
+              // 创建一个新的 img 元素，并设置其 src 属性为图片的 URL
+              const img = document.createElement('img');
+              // 将 base64 编码数据转化为 Data URL
+              img.src = image.split(",", 1)[0];
+              // 将 img 元素添加到 imageDisplay 中
+              imageDisplay.appendChild(img);
+            });
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+    });
     </script>
 </body>
 </html>
+
+
+
+
+
