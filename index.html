@@ -384,8 +384,10 @@
         // 获取当前时间
         let now = new Date()
         // 格式化当前时间，例如现在是20:30:10，则输出"203010"字符串
-        let nowTimeStr = formatDate(now, 'hhiiss')
-        // 格式化下一秒的时间
+        // let nowTimeStr = formatDate(now, 'hhiiss')
+        // // 格式化下一秒的时间
+        // let nextTimeStr = formatDate(new Date(now.getTime() + 1000), 'hhiiss')
+        let nowTimeStr = formatDate(new Date(now.getTime()), 'hhiiss')
         let nextTimeStr = formatDate(new Date(now.getTime() + 1000), 'hhiiss')
         // 定义牌板数组，用来存储6个Flipper翻板对象
         let flipObjs = []
@@ -405,8 +407,10 @@
         setInterval(function() {
             // 获取当前时间
             let now = new Date()
-            let nowTimeStr = formatDate(new Date(now.getTime() - 1000), 'hhiiss')
-            let nextTimeStr = formatDate(now, 'hhiiss')
+            // let nowTimeStr = formatDate(new Date(now.getTime() - 1000), 'hhiiss')
+            // let nextTimeStr = formatDate(now, 'hhiiss')
+            let nowTimeStr = formatDate(new Date(now.getTime()), 'hhiiss')
+            let nextTimeStr = formatDate(new Date(now.getTime() + 1000), 'hhiiss')
             for (let i = 0; i < flipObjs.length; i++) {
                 if (nowTimeStr[i] === nextTimeStr[i]) {
                     continue
