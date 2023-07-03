@@ -303,13 +303,13 @@ footer {
 .flip {
     display: inline-block;
     position: relative;
-    width: 60px;
-    height: 100px;
-    line-height: 100px;
+    width: 100px;
+    height: 180px;
+    line-height: 180px;
     border: solid 1px #CB5747;
     border-radius: 10px;
     background: #fff;
-    font-size: 66px;
+    font-size: 150px;
     color: #fff;
     box-shadow: 0 0 6px rgba(0, 0, 0, .5);
     text-align: center;
@@ -495,8 +495,8 @@ footer {
 .clock em {
     color: #CB5747;
     display: inline-block;
-    line-height: 102px;
-    font-size: 66px;
+    line-height: 150px;
+    font-size: 120px;
     font-style: normal;
     vertical-align: top;
 }
