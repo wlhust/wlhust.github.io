@@ -82,15 +82,23 @@
             <div class="digital back number1"></div>
         </div>
     </div>
-    <div id="imageDisplay"></div>
-    <div class="footer-container">
+    <body>
+        <div class="swiper-list-card swiper-list">  
+            <div class="swiper-main-card swiper-main"></div>
+            <img id="prev-card" class="btn leftBtn" src="src/left.png" alt="">
+            <img id="next-card" class="btn rightBtn" src="src/right.png" alt="">
+        </div>
+    </body>
+    <!-- <div id="imageDisplay"></div> -->
+    <!-- <div class="footer-container">
         <div class="pagination-container">
             <button id="prevBtn" onclick="prevPage()">&#9001;</button>
             <button id="nextBtn" onclick="nextPage()">&#9002;</button>
         </div>
-    </div>
+    </div> -->
 
-    <div id="gallery"></div>
+    <!-- <div id="gallery"></div> -->
+    <script src="./slider_card.js"></script>
     <script>
         var currentPage = 0;
         var photosPerPage = 5;
@@ -456,8 +464,96 @@
         function padLeftZero(str) {
             return ('00' + str).substr(str.length);
         }
-
-        </script>
+    </script>
+    <script>
+        let imgArr = [{
+                url: '#',
+                imgPath: 'pipi/1-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/3-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/5-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/10-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/11-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/12-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/15-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/16-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/18-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/28-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/31-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/32-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/34-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/35-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/41-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/43-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/45-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/50-image.png'
+            },
+            {
+                url: '#',
+                imgPath: 'pipi/55-image.png'
+            }
+        ];
+        new Swiper({
+            imgArr: imgArr, 
+            imgWidth: 200, 
+            aniTime: 1000, 
+            intervalTime: 1500, 
+            scale: 0.8, 
+            autoplay: true,
+            gap: 0,
+            clsSuffix: '-card'
+        }).init();
+    </script>
 </body>
 </html>
 
