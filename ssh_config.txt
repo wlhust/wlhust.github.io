@@ -1,0 +1,19 @@
+Generating public/private rsa key pair.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/wpipinet/.ssh/id_rsa.
+Your public key has been saved in /home/wpipinet/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:HmsCkTg2jr6r66/Ri8gNYT9gC1yXxA1/NNDqJlBqTic 
+The key's randomart image is:
++---[RSA 2048]----+
+|    .oo.oo       |
+|   ..+o....      |
+|  =.=o ...       |
+|.+.E.o ..        |
+|o*= = . S        |
+|= *. o + o       |
+| = +  + +        |
+|o * o  o         |
+|*O++             |
++----[SHA256]-----+

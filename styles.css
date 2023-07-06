@@ -510,6 +510,7 @@ footer {
     overflow: hidden;
     border: 1px solid #eee;
     padding: 30px 0;
+    border: none;
 }
 
 .swiper-main{
@@ -520,6 +521,7 @@ footer {
     height: 100%;
     display: block;
     position: absolute;
+    border: none;
     top: 0px;
     border-radius: 4px;
     display: inline-block;
@@ -553,5 +555,19 @@ footer {
     font-size: 10em;
     color: #CB5747;
 }
+
+.bg_fixed{
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 50%;
+    /*width: auto;*/
+    /*height: auto;*/
+    z-index: -100;
+    transform: translateX(-50%) translateY(-50%);
+    transition: 1s opacity;
+}
+
 
 

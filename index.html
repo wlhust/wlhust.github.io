@@ -56,6 +56,10 @@
             </div>
         </nav>
     </header>
+    <video autoplay muted loop class="bg_fixed">
+        <source src="src/pipi.mp4" type="video/mp4" />
+        <!-- 您的浏览器不支持 video 标签。 -->
+    </video>
     <!-- <div class="clock" id="clock">
         <div class="flip down">
             <div class="digital front number0"></div>
@@ -104,6 +108,10 @@
 
     <!-- <div id="gallery"></div> -->
     <script src="./slider_card.js"></script>
+    <script>
+        var video= document.querySelector('.bg_fixed');
+        video.playbackRate = 0.5;
+    </script>
     <script>
         var currentPage = 0;
         var photosPerPage = 5;
