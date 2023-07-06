@@ -540,5 +540,18 @@ footer {
     right: 0px;
 }
 
+.center {
+    display: flex;
+    justify-content: center;
+    position: absolute;  /* 设置为绝对定位 */
+    top: 2px;  /* 从顶部开始定位，距离为50px */
+    width: 100%;  /* 宽度设置为100%，确保文字始终在屏幕中间 */
+}
+
+.artistic-font {
+    font-family: 'Dancing Script', cursive;
+    font-size: 10em;
+    color: #CB5747;
+}
 
 
