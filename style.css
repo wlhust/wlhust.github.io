@@ -1,0 +1,465 @@
+:root {
+    --apple-gray: #86868b;
+    --apple-light-gray: #f5f5f7;
+    --apple-blue: #0066cc;
+    --apple-dark: #1d1d1f;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+    line-height: 1.47059;
+    font-weight: 400;
+    letter-spacing: -.022em;
+    color: var(--apple-dark);
+    background-color: #fff;
+}
+
+/* 导航栏样式 */
+header {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    padding: 0.8rem;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 22px;
+}
+
+.logo {
+    font-size: 1.3rem;
+    color: var(--apple-dark);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: var(--apple-gray);
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--apple-dark);
+}
+
+/* 主页区域样式 */
+.hero {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: #fff;
+    padding: 44px 0;
+}
+
+.large-text {
+    font-size: 56px;
+    line-height: 1.07143;
+    font-weight: 600;
+    letter-spacing: -.005em;
+    margin-bottom: 0.4em;
+}
+
+.sub-text {
+    font-size: 28px;
+    line-height: 1.10722;
+    font-weight: 400;
+    letter-spacing: .004em;
+    color: var(--apple-gray);
+}
+
+.section-title {
+    font-size: 48px;
+    line-height: 1.08349;
+    font-weight: 600;
+    letter-spacing: -.003em;
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+/* 按钮样式 */
+.cta-button, .apple-button {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: var(--apple-blue);
+    color: white;
+    text-decoration: none;
+    border-radius: 980px;
+    font-size: 17px;
+    line-height: 1.17648;
+    font-weight: 400;
+    letter-spacing: -.022em;
+    margin-top: 1.6em;
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover, .apple-button:hover {
+    background-color: #0077ed;
+    transform: scale(1.02);
+}
+
+/* 项目卡片样式 */
+.project-card {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 18px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.project-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.project-image {
+    height: 200px;
+    background-color: var(--apple-light-gray);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.learn-more {
+    color: var(--apple-blue);
+    text-decoration: none;
+    font-size: 17px;
+    line-height: 1.23536;
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+/* 输入框样式 */
+.apple-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    font-size: 17px;
+    line-height: 1.23536;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.apple-input:focus {
+    border-color: var(--apple-blue);
+    outline: none;
+}
+
+/* 动画效果 */
+.fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1s ease, transform 1s ease;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 技能条样式 */
+.skill-bar {
+    height: 8px;
+    background: var(--apple-light-gray);
+    border-radius: 4px;
+    margin: 8px 0 24px;
+    overflow: hidden;
+}
+
+.skill-progress {
+    height: 100%;
+    background: var(--apple-blue);
+    border-radius: 4px;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0;
+}
+
+/* 页脚样式 */
+footer {
+    background-color: var(--apple-light-gray);
+    padding: 2rem 0;
+    font-size: 12px;
+    line-height: 1.33337;
+    color: var(--apple-gray);
+}
+
+.footer-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 22px;
+    text-align: center;
+}
+
+.footer-links {
+    margin-bottom: 1rem;
+}
+
+.footer-links a {
+    color: var(--apple-gray);
+    text-decoration: none;
+    margin: 0 1rem;
+}
+
+.footer-links a:hover {
+    color: var(--apple-dark);
+}
+
+/* 响应式设计 */
+@media (max-width: 734px) {
+    .large-text {
+        font-size: 40px;
+    }
+    
+    .sub-text {
+        font-size: 24px;
+    }
+    
+    .nav-links {
+        display: none;
+    }
+}
+
+/* 添加全局过渡效果 */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 添加主题切换按钮样式 */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.theme-toggle:hover {
+    transform: rotate(180deg);
+    background: #555;
+}
+
+/* 暗色主题样式 */
+body.dark-theme {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+body.dark-theme .project-card {
+    background: #2d2d2d;
+    color: #ffffff;
+}
+
+body.dark-theme .hero {
+    background-color: #2d2d2d;
+}
+
+/* 返回顶部按钮 */
+.back-to-top {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: #333;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+}
+
+/* 动画按钮样式 */
+.animated-button {
+    padding: 12px 24px;
+    background: linear-gradient(45deg, #00ff9d, #00b8ff);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.animated-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.animated-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease-out, height 0.6s ease-out;
+}
+
+.animated-button:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* 关于我区域样式 */
+.about {
+    padding: 120px 0;
+    background-color: var(--apple-light-gray);
+}
+
+.about-content {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 22px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.text-content {
+    padding-right: 40px;
+}
+
+.text-content .large-text {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.text-content .sub-text {
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+.skills {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+}
+
+.skill {
+    margin-bottom: 30px;
+}
+
+.skill:last-child {
+    margin-bottom: 0;
+}
+
+.skill p {
+    font-size: 17px;
+    color: var(--apple-dark);
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+/* 联系我区域样式 */
+.contact {
+    padding: 120px 0;
+    background: white;
+}
+
+.contact-content {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 22px;
+    text-align: center;
+}
+
+.contact-content .large-text {
+    font-size: 48px;
+    margin-bottom: 30px;
+}
+
+.contact-form {
+    margin-top: 60px;
+    background: var(--apple-light-gray);
+    padding: 40px;
+    border-radius: 20px;
+}
+
+.contact-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.apple-input {
+    background: white;
+}
+
+textarea.apple-input {
+    min-height: 150px;
+    resize: vertical;
+}
+
+/* 响应式设计补充 */
+@media (max-width: 734px) {
+    .about-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .text-content {
+        padding-right: 0;
+        text-align: center;
+    }
+    
+    .contact-content .large-text {
+        font-size: 32px;
+    }
+    
+    .skills, .contact-form {
+        padding: 30px 20px;
+    }
+} 
