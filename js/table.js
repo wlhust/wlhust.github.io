@@ -11,12 +11,12 @@ class Table {
         
         // 袋口位置
         this.pockets = [
-            { x: TABLE_LEFT, y: TABLE_TOP },  // 左上
-            { x: TABLE_RIGHT, y: TABLE_TOP },  // 右上
-            { x: TABLE_LEFT, y: TABLE_BOTTOM },  // 左下
-            { x: TABLE_RIGHT, y: TABLE_BOTTOM },  // 右下
-            { x: (TABLE_LEFT + TABLE_RIGHT) / 2, y: TABLE_TOP },  // 中上
-            { x: (TABLE_LEFT + TABLE_RIGHT) / 2, y: TABLE_BOTTOM }  // 中下
+            { x: TABLE_LEFT, y: TABLE_TOP },             // 左上
+            { x: TABLE_RIGHT, y: TABLE_TOP },            // 右上
+            { x: TABLE_LEFT, y: TABLE_BOTTOM },          // 左下
+            { x: TABLE_RIGHT, y: TABLE_BOTTOM },         // 右下
+            { x: TABLE_LEFT + TABLE_WIDTH * 0.5, y: TABLE_TOP - POCKET_RADIUS * 0.3},         // 中上（向右移动）
+            { x: TABLE_LEFT + TABLE_WIDTH * 0.5, y: TABLE_BOTTOM + POCKET_RADIUS * 0.3}       // 中下（向左移动）
         ];
     }
     
@@ -25,29 +25,81 @@ class Table {
      * @param {CanvasRenderingContext2D} ctx - Canvas上下文
      */
     draw(ctx) {
-        // 绘制外部背景 - 木质外框
-        const woodPattern = this.createWoodPattern(ctx);
-        ctx.fillStyle = woodPattern || WOOD_COLOR;
-        ctx.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        
-        // 绘制台球桌边框底座
-        ctx.fillStyle = LIGHT_BROWN;
-        ctx.fillRect(TABLE_LEFT - 30, TABLE_TOP - 30, 
-                    TABLE_RIGHT - TABLE_LEFT + 60, 
-                    TABLE_BOTTOM - TABLE_TOP + 60);
-        
-        // 添加边框阴影效果
+        // 添加整体阴影效果
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 30;
         ctx.shadowOffsetX = 5;
         ctx.shadowOffsetY = 5;
         
-        // 绘制台面
-        const feltPattern = this.createFeltPattern(ctx);
-        ctx.fillStyle = feltPattern || FELT_GREEN;
-        ctx.fillRect(TABLE_LEFT, TABLE_TOP, 
-                    TABLE_RIGHT - TABLE_LEFT, 
-                    TABLE_BOTTOM - TABLE_TOP);
+        const frameWidth = CUSHION_HEIGHT * 2;  // 外框宽度是库边高度的两倍
+        const cornerRadius = frameWidth * 1.2;  // 增大圆角半径
+        
+        // 创建木质边框渐变
+        const frameGradient = ctx.createLinearGradient(
+            TABLE_LEFT - frameWidth, 
+            TABLE_TOP - frameWidth,
+            TABLE_LEFT - frameWidth, 
+            TABLE_BOTTOM + frameWidth
+        );
+        frameGradient.addColorStop(0, LIGHT_BROWN);
+        frameGradient.addColorStop(0.5, BROWN);
+        frameGradient.addColorStop(1, LIGHT_BROWN);
+        
+        ctx.fillStyle = frameGradient;
+        
+        // 绘制圆角矩形边框
+        ctx.beginPath();
+        
+        // 左上角
+        ctx.arc(
+            TABLE_LEFT - frameWidth + cornerRadius,
+            TABLE_TOP - frameWidth + cornerRadius,
+            cornerRadius,
+            Math.PI,
+            Math.PI * 1.5
+        );
+        
+        // 上边
+        ctx.lineTo(TABLE_RIGHT + frameWidth - cornerRadius, TABLE_TOP - frameWidth);
+        
+        // 右上角
+        ctx.arc(
+            TABLE_RIGHT + frameWidth - cornerRadius,
+            TABLE_TOP - frameWidth + cornerRadius,
+            cornerRadius,
+            Math.PI * 1.5,
+            0
+        );
+        
+        // 右边
+        ctx.lineTo(TABLE_RIGHT + frameWidth, TABLE_BOTTOM + frameWidth - cornerRadius);
+        
+        // 右下角
+        ctx.arc(
+            TABLE_RIGHT + frameWidth - cornerRadius,
+            TABLE_BOTTOM + frameWidth - cornerRadius,
+            cornerRadius,
+            0,
+            Math.PI * 0.5
+        );
+        
+        // 下边
+        ctx.lineTo(TABLE_LEFT - frameWidth + cornerRadius, TABLE_BOTTOM + frameWidth);
+        
+        // 左下角
+        ctx.arc(
+            TABLE_LEFT - frameWidth + cornerRadius,
+            TABLE_BOTTOM + frameWidth - cornerRadius,
+            cornerRadius,
+            Math.PI * 0.5,
+            Math.PI
+        );
+        
+        // 左边
+        ctx.lineTo(TABLE_LEFT - frameWidth, TABLE_TOP - frameWidth + cornerRadius);
+        
+        ctx.closePath();
+        ctx.fill();
         
         // 重置阴影
         ctx.shadowColor = 'transparent';
@@ -55,76 +107,169 @@ class Table {
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
         
+        // 创建台面渐变
+        const tableGradient = ctx.createLinearGradient(
+            TABLE_LEFT, TABLE_TOP,
+            TABLE_RIGHT, TABLE_BOTTOM
+        );
+        tableGradient.addColorStop(0, DARK_GREEN);
+        tableGradient.addColorStop(1, LIGHT_GREEN);
+        
+        // 绘制台面
+        ctx.fillStyle = tableGradient;
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, 
+                    TABLE_WIDTH, TABLE_HEIGHT);
+        
+        // 添加台面纹理
+        this.drawFeltTexture(ctx);
+        
         // 绘制台球桌边框
-        const cushionColor = DARK_GREEN;
-        this.drawCushions(ctx, cushionColor);
+        this.drawCushions(ctx);
+        
+        // 绘制袋口
+        this.drawPockets(ctx);
         
         // 绘制台球桌边框装饰
         this.drawCushionDecorations(ctx);
         
-        // 绘制袋口
-        this.pockets.forEach(pocket => {
-            // 绘制袋口外圈阴影
-            ctx.beginPath();
-            ctx.arc(pocket.x + 3, pocket.y + 3, POCKET_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fill();
-            
-            // 绘制袋口外圈
-            ctx.beginPath();
-            ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = BLACK;
-            ctx.fill();
-            
-            // 绘制袋口内部
-            ctx.beginPath();
-            ctx.arc(pocket.x, pocket.y, POCKET_RADIUS - 3, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgb(10, 10, 10)';
-            ctx.fill();
-            
-            // 添加袋口内部阴影效果
-            ctx.beginPath();
-            ctx.arc(pocket.x + 2, pocket.y + 2, POCKET_RADIUS - 8, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgb(5, 5, 5)';
-            ctx.fill();
-        });
+        // 绘制金属标尺装饰条
+        this.drawRulerDecorations(ctx);
         
-        // 绘制台球桌上的标记点
-        this.drawTableMarkers(ctx);
-        
-        // 绘制瞄准辅助点
-        this.drawAimingDots(ctx);
-        
-        // 绘制台球桌边缘阴影效果
-        this.drawTableShadow(ctx);
+        // 绘制台面内部阴影
+        this.drawInnerShadow(ctx);
     }
     
     /**
-     * 绘制瞄准辅助点
+     * 绘制袋口
      * @param {CanvasRenderingContext2D} ctx - Canvas上下文
      */
-    drawAimingDots(ctx) {
-        const dotSpacing = 30;
-        const dotRadius = 2;
+    drawPockets(ctx) {
+        for (const pocket of this.pockets) {
+            // 绘制袋口阴影
+            ctx.beginPath();
+            ctx.arc(pocket.x + 2, pocket.y + 2, POCKET_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fill();
+            
+            // 绘制袋口
+            ctx.beginPath();
+            ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+            
+            // 创建袋口渐变
+            const pocketGradient = ctx.createRadialGradient(
+                pocket.x, pocket.y, 0,
+                pocket.x, pocket.y, POCKET_RADIUS
+            );
+            pocketGradient.addColorStop(0, '#222222');
+            pocketGradient.addColorStop(1, '#000000');
+            
+            ctx.fillStyle = pocketGradient;
+            ctx.fill();
+            
+            // 绘制袋口内部网状结构
+            this.drawPocketMesh(ctx, pocket);
+            
+            // 绘制袋口边缘高光
+            ctx.beginPath();
+            ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+            ctx.strokeStyle = POCKET_EDGE_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+    
+    drawPocketMesh(ctx, pocket) {
+        ctx.save();
+        ctx.translate(pocket.x, pocket.y);
         
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        
-        // 绘制水平线上的点
-        for (let x = TABLE_LEFT + dotSpacing; x < TABLE_RIGHT; x += dotSpacing) {
-            for (let y of [TABLE_TOP + dotSpacing, TABLE_BOTTOM - dotSpacing]) {
-                ctx.beginPath();
-                ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
-                ctx.fill();
-            }
+        // 创建网格图案
+        for (let i = 0; i < 8; i++) {
+            ctx.rotate(Math.PI / 4);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(POCKET_RADIUS, 0);
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
         }
         
-        // 绘制垂直线上的点
-        for (let y = TABLE_TOP + dotSpacing; y < TABLE_BOTTOM; y += dotSpacing) {
-            for (let x of [TABLE_LEFT + dotSpacing, TABLE_RIGHT - dotSpacing]) {
-                ctx.beginPath();
-                ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
-                ctx.fill();
+        ctx.restore();
+    }
+    
+    drawFeltTexture(ctx) {
+        // 创建细微纹理
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+        for (let x = TABLE_LEFT; x < TABLE_RIGHT; x += 4) {
+            for (let y = TABLE_TOP; y < TABLE_BOTTOM; y += 4) {
+                if (Math.random() > 0.5) {
+                    ctx.fillRect(x, y, 2, 2);
+                }
             }
+        }
+    }
+    
+    drawInnerShadow(ctx) {
+        const shadowWidth = 20;
+        
+        // 上边阴影
+        const topShadow = ctx.createLinearGradient(0, TABLE_TOP, 0, TABLE_TOP + shadowWidth);
+        topShadow.addColorStop(0, RAIL_SHADOW);
+        topShadow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = topShadow;
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, TABLE_WIDTH, shadowWidth);
+        
+        // 左边阴影
+        const leftShadow = ctx.createLinearGradient(TABLE_LEFT, 0, TABLE_LEFT + shadowWidth, 0);
+        leftShadow.addColorStop(0, RAIL_SHADOW);
+        leftShadow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = leftShadow;
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP, shadowWidth, TABLE_HEIGHT);
+        
+        // 右边阴影
+        const rightShadow = ctx.createLinearGradient(TABLE_RIGHT, 0, TABLE_RIGHT - shadowWidth, 0);
+        rightShadow.addColorStop(0, RAIL_SHADOW);
+        rightShadow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = rightShadow;
+        ctx.fillRect(TABLE_RIGHT - shadowWidth, TABLE_TOP, shadowWidth, TABLE_HEIGHT);
+        
+        // 下边阴影
+        const bottomShadow = ctx.createLinearGradient(0, TABLE_BOTTOM, 0, TABLE_BOTTOM - shadowWidth);
+        bottomShadow.addColorStop(0, RAIL_SHADOW);
+        bottomShadow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = bottomShadow;
+        ctx.fillRect(TABLE_LEFT, TABLE_BOTTOM - shadowWidth, TABLE_WIDTH, shadowWidth);
+    }
+    
+    drawRulerDecorations(ctx) {
+        const rulerHeight = 3;
+        const markSpacing = 50;
+        const markHeight = 5;
+        
+        // 绘制标尺底色
+        ctx.fillStyle = '#c0c0c0';
+        
+        // 上边标尺
+        ctx.fillRect(TABLE_LEFT, TABLE_TOP - CUSHION_HEIGHT - rulerHeight, 
+                    TABLE_WIDTH, rulerHeight);
+                    
+        // 下边标尺
+        ctx.fillRect(TABLE_LEFT, TABLE_BOTTOM + CUSHION_HEIGHT, 
+                    TABLE_WIDTH, rulerHeight);
+        
+        // 绘制刻度
+        ctx.fillStyle = '#808080';
+        for (let x = TABLE_LEFT; x <= TABLE_RIGHT; x += markSpacing) {
+            // 上边刻度
+            ctx.fillRect(x, TABLE_TOP - CUSHION_HEIGHT - rulerHeight - markHeight/2, 
+                        1, markHeight);
+            
+            // 下边刻度
+            ctx.fillRect(x, TABLE_BOTTOM + CUSHION_HEIGHT, 
+                        1, markHeight);
         }
     }
     
@@ -185,28 +330,30 @@ class Table {
      */
     createFeltPattern(ctx) {
         const patternCanvas = document.createElement('canvas');
-        patternCanvas.width = 100;
-        patternCanvas.height = 100;
+        patternCanvas.width = 200;
+        patternCanvas.height = 200;
         const patternCtx = patternCanvas.getContext('2d');
         
-        // 绘制毛毡底色
+        // 绘制毛毡底色 - 使用图片中的绿色
         patternCtx.fillStyle = FELT_GREEN;
-        patternCtx.fillRect(0, 0, 100, 100);
+        patternCtx.fillRect(0, 0, 200, 200);
         
-        // 绘制毛毡纹理
-        patternCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        for (let i = 0; i < 1000; i++) {
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            patternCtx.fillRect(x, y, 1, 1);
+        // 添加细微纹理
+        patternCtx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+        for (let i = 0; i < 3000; i++) {
+            const x = Math.random() * 200;
+            const y = Math.random() * 200;
+            const size = Math.random() * 1.5 + 0.5;
+            patternCtx.fillRect(x, y, size, size);
         }
         
         // 添加一些亮点
-        patternCtx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-        for (let i = 0; i < 500; i++) {
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            patternCtx.fillRect(x, y, 1, 1);
+        patternCtx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+        for (let i = 0; i < 1000; i++) {
+            const x = Math.random() * 200;
+            const y = Math.random() * 200;
+            const size = Math.random() * 1 + 0.5;
+            patternCtx.fillRect(x, y, size, size);
         }
         
         try {
@@ -222,41 +369,106 @@ class Table {
      * @param {CanvasRenderingContext2D} ctx - Canvas上下文
      * @param {string} color - 边框颜色
      */
-    drawCushions(ctx, color) {
-        const cushionWidth = 20;
+    drawCushions(ctx) {
+        const cushionWidth = CUSHION_HEIGHT;
+        const frameWidth = cushionWidth * 2;  // 外框宽度
+        const cornerRadius = frameWidth * 1.2;  // 与外框一致的圆角半径
         
-        // 上边框
-        ctx.fillStyle = color;
-        ctx.fillRect(TABLE_LEFT, TABLE_TOP - cushionWidth, 
-                    TABLE_RIGHT - TABLE_LEFT, cushionWidth);
+        // 绘制外框
+        ctx.fillStyle = RAIL_COLOR;
         
-        // 下边框
-        ctx.fillRect(TABLE_LEFT, TABLE_BOTTOM, 
-                    TABLE_RIGHT - TABLE_LEFT, cushionWidth);
-        
-        // 左边框
-        ctx.fillRect(TABLE_LEFT - cushionWidth, TABLE_TOP, 
-                    cushionWidth, TABLE_BOTTOM - TABLE_TOP);
-        
-        // 右边框
-        ctx.fillRect(TABLE_RIGHT, TABLE_TOP, 
-                    cushionWidth, TABLE_BOTTOM - TABLE_TOP);
-        
-        // 添加边框高光
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 2;
-        
-        // 上边框高光
+        // 绘制圆角边框
         ctx.beginPath();
-        ctx.moveTo(TABLE_LEFT, TABLE_TOP - cushionWidth + 2);
-        ctx.lineTo(TABLE_RIGHT, TABLE_TOP - cushionWidth + 2);
-        ctx.stroke();
         
-        // 左边框高光
+        // 左上角
+        ctx.arc(
+            TABLE_LEFT - frameWidth + cornerRadius,
+            TABLE_TOP - frameWidth + cornerRadius,
+            cornerRadius,
+            Math.PI,
+            Math.PI * 1.5
+        );
+        
+        // 上边
+        ctx.lineTo(TABLE_RIGHT + frameWidth - cornerRadius, TABLE_TOP - frameWidth);
+        
+        // 右上角
+        ctx.arc(
+            TABLE_RIGHT + frameWidth - cornerRadius,
+            TABLE_TOP - frameWidth + cornerRadius,
+            cornerRadius,
+            Math.PI * 1.5,
+            0
+        );
+        
+        // 右边
+        ctx.lineTo(TABLE_RIGHT + frameWidth, TABLE_BOTTOM + frameWidth - cornerRadius);
+        
+        // 右下角
+        ctx.arc(
+            TABLE_RIGHT + frameWidth - cornerRadius,
+            TABLE_BOTTOM + frameWidth - cornerRadius,
+            cornerRadius,
+            0,
+            Math.PI * 0.5
+        );
+        
+        // 下边
+        ctx.lineTo(TABLE_LEFT - frameWidth + cornerRadius, TABLE_BOTTOM + frameWidth);
+        
+        // 左下角
+        ctx.arc(
+            TABLE_LEFT - frameWidth + cornerRadius,
+            TABLE_BOTTOM + frameWidth - cornerRadius,
+            cornerRadius,
+            Math.PI * 0.5,
+            Math.PI
+        );
+        
+        // 左边
+        ctx.lineTo(TABLE_LEFT - frameWidth, TABLE_TOP - frameWidth + cornerRadius);
+        
+        ctx.closePath();
+        ctx.fill();
+        
+        // 绘制内侧库边（绿色）
+        ctx.fillStyle = DARK_GREEN;
+        
+        // 上库边
         ctx.beginPath();
-        ctx.moveTo(TABLE_LEFT - cushionWidth + 2, TABLE_TOP);
-        ctx.lineTo(TABLE_LEFT - cushionWidth + 2, TABLE_BOTTOM);
-        ctx.stroke();
+        ctx.moveTo(TABLE_LEFT, TABLE_TOP);
+        ctx.lineTo(TABLE_LEFT - cushionWidth, TABLE_TOP - cushionWidth);
+        ctx.lineTo(TABLE_RIGHT + cushionWidth, TABLE_TOP - cushionWidth);
+        ctx.lineTo(TABLE_RIGHT, TABLE_TOP);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 下库边
+        ctx.beginPath();
+        ctx.moveTo(TABLE_LEFT, TABLE_BOTTOM);
+        ctx.lineTo(TABLE_LEFT - cushionWidth, TABLE_BOTTOM + cushionWidth);
+        ctx.lineTo(TABLE_RIGHT + cushionWidth, TABLE_BOTTOM + cushionWidth);
+        ctx.lineTo(TABLE_RIGHT, TABLE_BOTTOM);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 左库边
+        ctx.beginPath();
+        ctx.moveTo(TABLE_LEFT, TABLE_TOP);
+        ctx.lineTo(TABLE_LEFT - cushionWidth, TABLE_TOP - cushionWidth);
+        ctx.lineTo(TABLE_LEFT - cushionWidth, TABLE_BOTTOM + cushionWidth);
+        ctx.lineTo(TABLE_LEFT, TABLE_BOTTOM);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 右库边
+        ctx.beginPath();
+        ctx.moveTo(TABLE_RIGHT, TABLE_TOP);
+        ctx.lineTo(TABLE_RIGHT + cushionWidth, TABLE_TOP - cushionWidth);
+        ctx.lineTo(TABLE_RIGHT + cushionWidth, TABLE_BOTTOM + cushionWidth);
+        ctx.lineTo(TABLE_RIGHT, TABLE_BOTTOM);
+        ctx.closePath();
+        ctx.fill();
     }
     
     /**
@@ -264,37 +476,54 @@ class Table {
      * @param {CanvasRenderingContext2D} ctx - Canvas上下文
      */
     drawCushionDecorations(ctx) {
-        // 绘制边框装饰点
-        ctx.fillStyle = GOLD;
+        const frameWidth = CUSHION_HEIGHT * 2;
+        // 绘制边框装饰点 - 白色点
+        ctx.fillStyle = RAIL_DECORATION_COLOR;
+        
+        // 装饰点的位置偏移（从边缘向内）
+        const offset = frameWidth * 0.4;
         
         // 上边框装饰点
-        for (let i = 1; i < 6; i++) {
-            const x = TABLE_LEFT + (TABLE_RIGHT - TABLE_LEFT) * i / 6;
+        const topPoints = 8;
+        const topSpacing = TABLE_WIDTH / (topPoints + 1);
+        for (let i = 1; i <= topPoints; i++) {
+            const x = TABLE_LEFT + i * topSpacing;
+            const y = TABLE_TOP - frameWidth + offset;
             ctx.beginPath();
-            ctx.arc(x, TABLE_TOP - 10, 5, 0, Math.PI * 2);
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
             ctx.fill();
         }
         
         // 下边框装饰点
-        for (let i = 1; i < 6; i++) {
-            const x = TABLE_LEFT + (TABLE_RIGHT - TABLE_LEFT) * i / 6;
+        const bottomPoints = 8;
+        const bottomSpacing = TABLE_WIDTH / (bottomPoints + 1);
+        for (let i = 1; i <= bottomPoints; i++) {
+            const x = TABLE_LEFT + i * bottomSpacing;
+            const y = TABLE_BOTTOM + frameWidth - offset;
             ctx.beginPath();
-            ctx.arc(x, TABLE_BOTTOM + 10, 5, 0, Math.PI * 2);
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
             ctx.fill();
         }
         
-        // 左右边框装饰点
-        for (let i = 1; i < 3; i++) {
-            const y = TABLE_TOP + (TABLE_BOTTOM - TABLE_TOP) * i / 3;
-            
-            // 左边框
+        // 左边框装饰点
+        const leftPoints = 3;
+        const leftSpacing = TABLE_HEIGHT / (leftPoints + 1);
+        for (let i = 1; i <= leftPoints; i++) {
+            const x = TABLE_LEFT - frameWidth + offset;
+            const y = TABLE_TOP + i * leftSpacing;
             ctx.beginPath();
-            ctx.arc(TABLE_LEFT - 10, y, 5, 0, Math.PI * 2);
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
             ctx.fill();
-            
-            // 右边框
+        }
+        
+        // 右边框装饰点
+        const rightPoints = 3;
+        const rightSpacing = TABLE_HEIGHT / (rightPoints + 1);
+        for (let i = 1; i <= rightPoints; i++) {
+            const x = TABLE_RIGHT + frameWidth - offset;
+            const y = TABLE_TOP + i * rightSpacing;
             ctx.beginPath();
-            ctx.arc(TABLE_RIGHT + 10, y, 5, 0, Math.PI * 2);
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
             ctx.fill();
         }
     }
@@ -320,41 +549,6 @@ class Table {
         ctx.beginPath();
         ctx.arc(TABLE_LEFT + (TABLE_RIGHT - TABLE_LEFT) * 3 / 4, (TABLE_TOP + TABLE_BOTTOM) / 2, 3, 0, Math.PI * 2);
         ctx.fill();
-    }
-    
-    /**
-     * 绘制台球桌阴影
-     * @param {CanvasRenderingContext2D} ctx - Canvas上下文
-     */
-    drawTableShadow(ctx) {
-        // 创建半透明阴影
-        const shadowCanvas = document.createElement('canvas');
-        shadowCanvas.width = TABLE_RIGHT - TABLE_LEFT;
-        shadowCanvas.height = TABLE_BOTTOM - TABLE_TOP;
-        const shadowCtx = shadowCanvas.getContext('2d');
-        
-        // 绘制内部阴影
-        const gradient = shadowCtx.createLinearGradient(0, 0, 0, shadowCanvas.height);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
-        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-        
-        shadowCtx.fillStyle = gradient;
-        shadowCtx.fillRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-        
-        // 绘制左右阴影
-        const horizontalGradient = shadowCtx.createLinearGradient(0, 0, shadowCanvas.width, 0);
-        horizontalGradient.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
-        horizontalGradient.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
-        horizontalGradient.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-        
-        shadowCtx.fillStyle = horizontalGradient;
-        shadowCtx.fillRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-        
-        // 将阴影绘制到主画布
-        ctx.globalAlpha = 0.5;
-        ctx.drawImage(shadowCanvas, TABLE_LEFT, TABLE_TOP);
-        ctx.globalAlpha = 1.0;
     }
     
     /**

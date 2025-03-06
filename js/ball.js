@@ -65,18 +65,25 @@ class Ball {
         this.angularVelocity *= 0.98;  // 角速度衰减
         
         // 边界碰撞检测
-        if (this.x - BALL_RADIUS <= TABLE_LEFT || this.x + BALL_RADIUS >= TABLE_RIGHT) {
-            this.velocityX *= -0.8;
+        if (this.x - BALL_RADIUS <= TABLE_LEFT) {
+            this.x = TABLE_LEFT + BALL_RADIUS;
+            this.velocityX = -this.velocityX * ELASTICITY;
             playSound(SOUND_TYPES.WALL_HIT);
-        }
-        if (this.y - BALL_RADIUS <= TABLE_TOP || this.y + BALL_RADIUS >= TABLE_BOTTOM) {
-            this.velocityY *= -0.8;
+        } else if (this.x + BALL_RADIUS >= TABLE_RIGHT) {
+            this.x = TABLE_RIGHT - BALL_RADIUS;
+            this.velocityX = -this.velocityX * ELASTICITY;
             playSound(SOUND_TYPES.WALL_HIT);
         }
         
-        // 确保球不会卡在边界
-        this.x = Math.max(TABLE_LEFT + BALL_RADIUS, Math.min(this.x, TABLE_RIGHT - BALL_RADIUS));
-        this.y = Math.max(TABLE_TOP + BALL_RADIUS, Math.min(this.y, TABLE_BOTTOM - BALL_RADIUS));
+        if (this.y - BALL_RADIUS <= TABLE_TOP) {
+            this.y = TABLE_TOP + BALL_RADIUS;
+            this.velocityY = -this.velocityY * ELASTICITY;
+            playSound(SOUND_TYPES.WALL_HIT);
+        } else if (this.y + BALL_RADIUS >= TABLE_BOTTOM) {
+            this.y = TABLE_BOTTOM - BALL_RADIUS;
+            this.velocityY = -this.velocityY * ELASTICITY;
+            playSound(SOUND_TYPES.WALL_HIT);
+        }
     }
     
     /**
@@ -84,66 +91,314 @@ class Ball {
      * @param {CanvasRenderingContext2D} ctx - Canvas上下文
      */
     draw(ctx) {
-        if (this.pocketed) return;
+        if (this.pocketed) {
+            // 如果球正在进袋，添加缩放和旋转动画
+            if (this.pocketingAnimation) {
+                const progress = (Date.now() - this.pocketingAnimation.startTime) / 300;
+                if (progress <= 1) {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(progress * Math.PI * 2);
+                    ctx.scale(1 - progress * 0.2, 1 - progress * 0.2);
+                    ctx.translate(-this.x, -this.y);
+                    this.drawBall(ctx);
+                    ctx.restore();
+                    return;
+                }
+            }
+            return;
+        }
         
+        this.drawBall(ctx);
+    }
+
+    drawBall(ctx) {
         // 绘制球体阴影
+        const shadowOffsetX = 4;
+        const shadowOffsetY = 4;
+        const shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(this.x + 3, this.y + 3, BALL_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(30, 30, 30, 0.5)';
+        ctx.arc(this.x + shadowOffsetX, this.y + shadowOffsetY, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowBlur = shadowBlur;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
         ctx.fill();
+        
+        // 重置阴影
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
         
         // 绘制球体
         ctx.beginPath();
         ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
         
-        // 为球添加高光效果
-        const highlightX = this.x - BALL_RADIUS/2;
-        const highlightY = this.y - BALL_RADIUS/2;
-        const highlightRadius = BALL_RADIUS/3;
-        
+        // 创建球体径向渐变，增强3D效果
         const gradient = ctx.createRadialGradient(
-            highlightX, highlightY, 0,
-            highlightX, highlightY, highlightRadius
+            this.x - BALL_RADIUS/2.5, this.y - BALL_RADIUS/2.5, BALL_RADIUS/10,
+            this.x, this.y, BALL_RADIUS
         );
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
         
-        ctx.beginPath();
-        ctx.arc(highlightX, highlightY, highlightRadius, 0, Math.PI * 2);
+        // 根据球的颜色创建渐变
+        const baseColor = this.color;
+        const lighterColor = this.getLighterColor(baseColor);
+        const darkerColor = this.getDarkerColor(baseColor);
+        
+        gradient.addColorStop(0, lighterColor);
+        gradient.addColorStop(0.6, baseColor);
+        gradient.addColorStop(1, darkerColor);
+        
         ctx.fillStyle = gradient;
         ctx.fill();
         
+        // 添加边缘描边，增强立体感
+        ctx.strokeStyle = darkerColor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // 为球添加主高光效果
+        const highlightX = this.x - BALL_RADIUS/2.5;
+        const highlightY = this.y - BALL_RADIUS/2.5;
+        const highlightRadius = BALL_RADIUS/2;
+        
+        const highlightGradient = ctx.createRadialGradient(
+            highlightX, highlightY, 0,
+            highlightX, highlightY, highlightRadius
+        );
+        highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+        highlightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
+        highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        
+        ctx.beginPath();
+        ctx.arc(highlightX, highlightY, highlightRadius, 0, Math.PI * 2);
+        ctx.fillStyle = highlightGradient;
+        ctx.fill();
+        
+        // 添加次级高光
+        const secondaryHighlightX = this.x + BALL_RADIUS/3;
+        const secondaryHighlightY = this.y + BALL_RADIUS/3;
+        const secondaryHighlightRadius = BALL_RADIUS/4;
+        
+        const secondaryGradient = ctx.createRadialGradient(
+            secondaryHighlightX, secondaryHighlightY, 0,
+            secondaryHighlightX, secondaryHighlightY, secondaryHighlightRadius
+        );
+        secondaryGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+        secondaryGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        
+        ctx.beginPath();
+        ctx.arc(secondaryHighlightX, secondaryHighlightY, secondaryHighlightRadius, 0, Math.PI * 2);
+        ctx.fillStyle = secondaryGradient;
+        ctx.fill();
+        
+        // 绘制球号和标记
+        this.drawBallNumber(ctx);
+    }
+
+    drawBallNumber(ctx) {
         if (this.isCue) {
             // 为母球添加特殊标记
             ctx.beginPath();
-            ctx.arc(this.x, this.y, BALL_RADIUS - 3, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgb(200, 200, 200)';
+            ctx.arc(this.x, this.y, BALL_RADIUS - 2, 0, Math.PI * 2);
+            
+            // 创建母球内部渐变
+            const cueGradient = ctx.createRadialGradient(
+                this.x - (BALL_RADIUS-2)/3, this.y - (BALL_RADIUS-2)/3, 0,
+                this.x, this.y, BALL_RADIUS - 2
+            );
+            cueGradient.addColorStop(0, '#ffffff');
+            cueGradient.addColorStop(0.7, '#f8f8f8');
+            cueGradient.addColorStop(1, '#f0f0f0');
+            
+            ctx.fillStyle = cueGradient;
             ctx.fill();
         } else if (this.number !== null) {
-            // 为有编号的球绘制数字
-            ctx.font = '12px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // 根据球的颜色选择文字颜色
-            const isDarkBall = this.color === BLACK || this.color === BLUE;
-            ctx.fillStyle = isDarkBall ? WHITE : BLACK;
-            
-            ctx.fillText(this.number.toString(), this.x, this.y);
+            if (this.number <= 8) {
+                this.drawSolidBall(ctx);
+            } else {
+                this.drawStripedBall(ctx);
+            }
+        }
+    }
+
+    /**
+     * 绘制实色球
+     * @param {CanvasRenderingContext2D} ctx - Canvas上下文
+     */
+    drawSolidBall(ctx) {
+        // 绘制白色圆圈
+        const circleRadius = BALL_RADIUS * 0.4;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, circleRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // 绘制数字
+        ctx.font = 'bold ' + (BALL_RADIUS * 0.6) + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#000000';
+        ctx.fillText(this.number.toString(), this.x, this.y);
+    }
+
+    /**
+     * 绘制条纹球
+     * @param {CanvasRenderingContext2D} ctx - Canvas上下文
+     */
+    drawStripedBall(ctx) {
+        // 保存当前上下文状态
+        ctx.save();
+        
+        // 创建条纹区域（上下白色区域）
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.clip();
+        
+        // 绘制白色条纹
+        const stripeWidth = BALL_RADIUS * 1.2;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(this.x - BALL_RADIUS, this.y - stripeWidth/2, BALL_RADIUS * 2, stripeWidth);
+        
+        // 恢复上下文
+        ctx.restore();
+        
+        // 重新绘制球的边缘
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.strokeStyle = this.getDarkerColor(this.color);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // 绘制白色圆圈
+        const circleRadius = BALL_RADIUS * 0.4;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, circleRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // 绘制数字
+        ctx.font = 'bold ' + (BALL_RADIUS * 0.6) + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#000000';
+        ctx.fillText(this.number.toString(), this.x, this.y);
+    }
+
+    /**
+     * 获取颜色的亮色版本
+     * @param {string} color - 原始颜色
+     * @returns {string} - 亮色版本
+     */
+    getLighterColor(color) {
+        // 简单处理常见颜色
+        switch(color) {
+            case WHITE: return '#ffffff';
+            case BLACK: return '#505050';
+            case RED: return '#ff6060';
+            case BLUE: return '#6060ff';
+            case YELLOW: return '#ffff60';
+            default:
+                // 尝试解析颜色
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = color;
+                    const rgb = ctx.fillStyle;
+                    
+                    // 简单增亮
+                    return this.adjustBrightness(rgb, 40);
+                } catch(e) {
+                    return color; // 如果解析失败，返回原始颜色
+                }
+        }
+    }
+
+    /**
+     * 获取颜色的暗色版本
+     * @param {string} color - 原始颜色
+     * @returns {string} - 暗色版本
+     */
+    getDarkerColor(color) {
+        // 简单处理常见颜色
+        switch(color) {
+            case WHITE: return '#e0e0e0';
+            case BLACK: return '#000000';
+            case RED: return '#c00000';
+            case BLUE: return '#000080';
+            case YELLOW: return '#c0c000';
+            default:
+                // 尝试解析颜色
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = color;
+                    const rgb = ctx.fillStyle;
+                    
+                    // 简单降低亮度
+                    return this.adjustBrightness(rgb, -40);
+                } catch(e) {
+                    return color; // 如果解析失败，返回原始颜色
+                }
+        }
+    }
+
+    /**
+     * 调整颜色亮度
+     * @param {string} color - 原始颜色（格式：#rrggbb）
+     * @param {number} amount - 亮度调整量（正值增亮，负值变暗）
+     * @returns {string} - 调整后的颜色
+     */
+    adjustBrightness(color, amount) {
+        if (color.startsWith('#')) {
+            color = color.slice(1);
+        } else if (color.startsWith('rgb')) {
+            // 提取rgb值
+            const match = color.match(/\d+/g);
+            if (match && match.length >= 3) {
+                color = '';
+                for (let i = 0; i < 3; i++) {
+                    const hex = parseInt(match[i]).toString(16);
+                    color += hex.length === 1 ? '0' + hex : hex;
+                }
+            }
         }
         
-        // 如果是母球且有旋转，绘制旋转效果指示器
-        if (this.isCue && Math.abs(this.angularVelocity) > 0.1) {
-            const spinColor = this.angularVelocity > 0 ? 'rgba(0, 255, 0, 0.3)' : 'rgba(255, 0, 0, 0.3)';
-            const spinRadius = 5 + Math.abs(this.angularVelocity) * 10;
-            
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, spinRadius, 0, Math.PI * 2);
-            ctx.fillStyle = spinColor;
-            ctx.fill();
+        // 确保是6位十六进制
+        if (color.length === 3) {
+            color = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
         }
+        
+        // 解析RGB值
+        const r = parseInt(color.substr(0, 2), 16);
+        const g = parseInt(color.substr(2, 2), 16);
+        const b = parseInt(color.substr(4, 2), 16);
+        
+        // 调整亮度
+        const newR = Math.max(0, Math.min(255, r + amount));
+        const newG = Math.max(0, Math.min(255, g + amount));
+        const newB = Math.max(0, Math.min(255, b + amount));
+        
+        // 转回十六进制
+        return `#${this.toHex(newR)}${this.toHex(newG)}${this.toHex(newB)}`;
+    }
+
+    /**
+     * 将数字转为两位十六进制
+     * @param {number} num - 输入数字
+     * @returns {string} - 两位十六进制字符串
+     */
+    toHex(num) {
+        const hex = Math.round(num).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
     }
 }
 
