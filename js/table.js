@@ -9,16 +9,18 @@ class Table {
         this.top = TABLE_TOP;
         this.bottom = TABLE_BOTTOM;
         
-        // 袋口位置
+        // 初始化台球桌
         this.pockets = [
-            { x: TABLE_LEFT, y: TABLE_TOP },             // 左上
-            { x: TABLE_RIGHT, y: TABLE_TOP },            // 右上
-            { x: TABLE_LEFT, y: TABLE_BOTTOM },          // 左下
-            { x: TABLE_RIGHT, y: TABLE_BOTTOM },         // 右下
-            { x: TABLE_LEFT + TABLE_WIDTH * 0.5, y: TABLE_TOP - POCKET_RADIUS * 0.3},         // 中上
-            { x: TABLE_LEFT + TABLE_WIDTH * 0.5, y: TABLE_BOTTOM + POCKET_RADIUS * 0.3}       // 中下
+            { x: TABLE_LEFT, y: TABLE_TOP },                           // 左上角口袋
+            { x: TABLE_LEFT + TABLE_WIDTH / 2, y: TABLE_TOP },         // 上中口袋
+            { x: TABLE_LEFT + TABLE_WIDTH, y: TABLE_TOP },             // 右上角口袋
+            { x: TABLE_LEFT, y: TABLE_TOP + TABLE_HEIGHT },            // 左下角口袋
+            { x: TABLE_LEFT + TABLE_WIDTH / 2, y: TABLE_TOP + TABLE_HEIGHT }, // 下中口袋
+            { x: TABLE_LEFT + TABLE_WIDTH, y: TABLE_TOP + TABLE_HEIGHT }      // 右下角口袋
         ];
-
+        
+        this.pocketRadius = BALL_RADIUS * 1.5;
+        
         // 库边位置（用于碰撞检测）
         this.cushions = [
             // 上库边
@@ -61,6 +63,23 @@ class Table {
     }
     
     /**
+     * 更新口袋位置
+     * 在屏幕尺寸变化时调用
+     */
+    updatePockets() {
+        this.pockets = [
+            { x: TABLE_LEFT, y: TABLE_TOP },                           // 左上角口袋
+            { x: TABLE_LEFT + TABLE_WIDTH / 2, y: TABLE_TOP },         // 上中口袋
+            { x: TABLE_LEFT + TABLE_WIDTH, y: TABLE_TOP },             // 右上角口袋
+            { x: TABLE_LEFT, y: TABLE_TOP + TABLE_HEIGHT },            // 左下角口袋
+            { x: TABLE_LEFT + TABLE_WIDTH / 2, y: TABLE_TOP + TABLE_HEIGHT }, // 下中口袋
+            { x: TABLE_LEFT + TABLE_WIDTH, y: TABLE_TOP + TABLE_HEIGHT }      // 右下角口袋
+        ];
+        
+        this.pocketRadius = BALL_RADIUS * 1.5;
+    }
+    
+    /**
      * 绘制台球桌
      * @param {CanvasRenderingContext2D} ctx - Canvas上下文
      */
@@ -98,7 +117,7 @@ class Table {
             const dy = ball.y - pocket.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance < POCKET_RADIUS) {
+            if (distance < this.pocketRadius) {
                 return i;  // 返回袋口索引
             }
         }
@@ -138,7 +157,7 @@ class Table {
             } else {
                 const d = Math.abs((ball.x - cushion.x1) * dy - (ball.y - cushion.y1) * dx) / length;
                 if (d < BALL_RADIUS) {
-                    return true;
+                return true;
                 }
             }
         }

@@ -408,7 +408,7 @@ class Ball {
  * @param {Ball} ball2 - 第二个球
  */
 function checkCollision(ball1, ball2) {
-    if (ball1.pocketed || ball2.pocketed) return;
+    if (ball1.pocketed || ball2.pocketed) return false;
     
     // 计算两球中心连线向量（法线方向）
     const dx = ball2.x - ball1.x;
@@ -448,120 +448,40 @@ function checkCollision(ball1, ball2) {
         const e = ELASTICITY;
         
         // 计算碰撞后的法线速度（仅法线方向交换动量）
-        const v1n_final = (v1n * (m1 - e * m2) + m2 * (1 + e) * v2n) / (m1 + m2);
-        const v2n_final = (v2n * (m2 - e * m1) + m1 * (1 + e) * v1n) / (m1 + m2);
+        const v1nAfter = (v1n * (m1 - e * m2) + v2n * m2 * (1 + e)) / (m1 + m2);
+        const v2nAfter = (v2n * (m2 - e * m1) + v1n * m1 * (1 + e)) / (m1 + m2);
         
         // 切线方向速度保持不变
-        const v1t_final = v1t;
-        const v2t_final = v2t;
+        const v1tAfter = v1t;
+        const v2tAfter = v2t;
         
-        // 将法线和切线速度分量转换回x和y分量
-        ball1.velocityX = v1n_final * nx + v1t_final * tx;
-        ball1.velocityY = v1n_final * ny + v1t_final * ty;
-        ball2.velocityX = v2n_final * nx + v2t_final * tx;
-        ball2.velocityY = v2n_final * ny + v2t_final * ty;
+        // 将法线和切线分量转换回x和y分量
+        ball1.velocityX = v1nAfter * nx + v1tAfter * tx;
+        ball1.velocityY = v1nAfter * ny + v1tAfter * ty;
+        ball2.velocityX = v2nAfter * nx + v2tAfter * tx;
+        ball2.velocityY = v2nAfter * ny + v2tAfter * ty;
         
-        // 防止球体重叠（将球体分开）
-        const overlap = 2 * BALL_RADIUS - distance;
-        ball2.x += overlap * nx * 0.5;
-        ball2.y += overlap * ny * 0.5;
-        ball1.x -= overlap * nx * 0.5;
-        ball1.y -= overlap * ny * 0.5;
-        
+        // 设置球为运动状态
         ball1.inMotion = true;
         ball2.inMotion = true;
         
-        playSound(SOUND_TYPES.BALL_HIT);
-    } else {
-        // 基于运动轨迹的碰撞预测
-        // 计算相对速度
-        const vx = ball2.velocityX - ball1.velocityX;
-        const vy = ball2.velocityY - ball1.velocityY;
+        // 播放碰撞音效
+        playSound('ball_hit');
         
-        // 计算相对位置和速度的点积
-        const dotProduct = dx * vx + dy * vy;
-        
-        // 如果点积为正，球体正在远离而非接近
-        if (dotProduct >= 0) return;
-        
-        // 计算判别式 b^2-4ac，用于求解二次方程
-        // 二次方程：|p + vt|^2 = 4R^2，其中p是相对位置，v是相对速度，R是球半径
-        const a = vx * vx + vy * vy;
-        const b = 2 * (dx * vx + dy * vy);
-        const c = dx * dx + dy * dy - 4 * BALL_RADIUS * BALL_RADIUS;
-        
-        const discriminant = b * b - 4 * a * c;
-        
-        // 如果判别式小于0，没有实数解，不会发生碰撞
-        if (discriminant < 0 || a < 0.0001) return;  // a接近0意味着相对速度几乎为0
-        
-        // 计算碰撞时间（取较小的正值解）
-        const t = (-b - Math.sqrt(discriminant)) / (2 * a);
-        
-        // 如果t为负数或太大，不考虑碰撞
-        if (t < 0 || t > 1.0) return;  // 限制预测时间范围
-        
-        // 预测碰撞点
-        const collision_x1 = ball1.x + ball1.velocityX * t;
-        const collision_y1 = ball1.y + ball1.velocityY * t;
-        const collision_x2 = ball2.x + ball2.velocityX * t;
-        const collision_y2 = ball2.y + ball2.velocityY * t;
-        
-        // 更新球的位置到碰撞点
-        ball1.x = collision_x1;
-        ball1.y = collision_y1;
-        ball2.x = collision_x2;
-        ball2.y = collision_y2;
-        
-        // 重新计算法线方向（基于碰撞点）
-        const new_dx = collision_x2 - collision_x1;
-        const new_dy = collision_y2 - collision_y1;
-        const new_distance = Math.sqrt(new_dx*new_dx + new_dy*new_dy);
-        
-        // 计算法线单位向量
-        let nx, ny;
-        if (new_distance > 0) {
-            nx = new_dx / new_distance;
-            ny = new_dy / new_distance;
-        } else {
-            nx = 1;
-            ny = 0;
+        // 防止球重叠：将球沿法线方向分离
+        const overlap = BALL_RADIUS * 2 - distance;
+        if (overlap > 0) {
+            const separationX = nx * overlap * 0.5;
+            const separationY = ny * overlap * 0.5;
+            
+            ball1.x -= separationX;
+            ball1.y -= separationY;
+            ball2.x += separationX;
+            ball2.y += separationY;
         }
         
-        // 计算切线单位向量
-        const tx = -ny;
-        const ty = nx;
-        
-        // 计算速度分量
-        const v1n = ball1.velocityX * nx + ball1.velocityY * ny;
-        const v1t = ball1.velocityX * tx + ball1.velocityY * ty;
-        const v2n = ball2.velocityX * nx + ball2.velocityY * ny;
-        const v2t = ball2.velocityX * tx + ball2.velocityY * ty;
-        
-        // 质量参数
-        const m1 = 1.0;
-        const m2 = 1.0;
-        
-        // 弹性系数
-        const e = ELASTICITY;
-        
-        // 计算碰撞后的法线速度
-        const v1n_final = (v1n * (m1 - e * m2) + m2 * (1 + e) * v2n) / (m1 + m2);
-        const v2n_final = (v2n * (m2 - e * m1) + m1 * (1 + e) * v1n) / (m1 + m2);
-        
-        // 切线方向速度保持不变
-        const v1t_final = v1t;
-        const v2t_final = v2t;
-        
-        // 将速度分量转换回x和y分量
-        ball1.velocityX = v1n_final * nx + v1t_final * tx;
-        ball1.velocityY = v1n_final * ny + v1t_final * ty;
-        ball2.velocityX = v2n_final * nx + v2t_final * tx;
-        ball2.velocityY = v2n_final * ny + v2t_final * ty;
-        
-        ball1.inMotion = true;
-        ball2.inMotion = true;
-        
-        playSound(SOUND_TYPES.BALL_HIT);
+        return true;  // 发生了碰撞
     }
+    
+    return false;  // 没有碰撞
 }

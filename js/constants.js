@@ -21,26 +21,26 @@ const RAIL_SHADOW = 'rgba(0, 0, 0, 0.5)';  // 库边阴影颜色
 const RAIL_COLOR = '#0C6B3C';  // 库边颜色，与台面相同
 const FRAME_COLOR = '#2B1810';  // 木质外框颜色，与BROWN相同
 
-// 游戏窗口设置
-const WINDOW_WIDTH = 1200;
-const WINDOW_HEIGHT = 600;
+// 游戏窗口设置 - 这些将在初始化时被动态设置
+let WINDOW_WIDTH = 1200;
+let WINDOW_HEIGHT = 600;
 
-// 球桌尺寸（2:1比例）
-const TABLE_WIDTH = 900;  // 增加台面宽度
-const TABLE_HEIGHT = 450;  // 保持2:1比例
-const TABLE_LEFT = (WINDOW_WIDTH - TABLE_WIDTH) / 2;
-const TABLE_RIGHT = TABLE_LEFT + TABLE_WIDTH;
-const TABLE_TOP = (WINDOW_HEIGHT - TABLE_HEIGHT) / 2;
-const TABLE_BOTTOM = TABLE_TOP + TABLE_HEIGHT;
+// 球桌尺寸（2:1比例）- 这些将在初始化时被动态设置
+let TABLE_WIDTH = 900;  // 增加台面宽度
+let TABLE_HEIGHT = 450;  // 保持2:1比例
+let TABLE_LEFT = (WINDOW_WIDTH - TABLE_WIDTH) / 2;
+let TABLE_RIGHT = TABLE_LEFT + TABLE_WIDTH;
+let TABLE_TOP = (WINDOW_HEIGHT - TABLE_HEIGHT) / 2;
+let TABLE_BOTTOM = TABLE_TOP + TABLE_HEIGHT;
 
-// 球的属性
-const BALL_RADIUS = 12;  // 调整球的大小
+// 球的属性 - 球的大小将根据屏幕尺寸动态调整
+let BALL_RADIUS = 12;  // 调整球的大小
 const BALL_MASS = 1;
 const FRICTION = 0.99;  // 摩擦系数
 
-// 袋口属性
-const POCKET_RADIUS = 18;  // 调整袋口大小
-const POCKET_DETECTION_RADIUS = 20;  // 相应调整检测范围
+// 袋口属性 - 袋口大小将根据球的大小动态调整
+let POCKET_RADIUS = 18;  // 调整袋口大小
+let POCKET_DETECTION_RADIUS = 20;  // 相应调整检测范围
 const POCKET_LINER_COLOR = '#111111';  // 袋口内衬颜色
 const POCKET_EDGE_COLOR = '#333333';  // 袋口边缘颜色
 const POCKET_GLOW_COLOR = '#ffd700';  // 袋口高亮颜色
@@ -51,8 +51,8 @@ const SLIDING_FRICTION = 0.02;  // 滑动摩擦系数
 const ROLLING_FRICTION = 0.02;  // 滚动摩擦系数
 const ELASTICITY = 0.8;  // 弹性系数
 
-// 台球桌装饰
-const CUSHION_HEIGHT = 30;  // 增加边框宽度
+// 台球桌装饰 - 边框宽度将根据球的大小动态调整
+let CUSHION_HEIGHT = 30;  // 增加边框宽度
 const RAIL_HIGHLIGHT = '#8b5e4e';  // 边框高光色
 
 // 游戏状态
