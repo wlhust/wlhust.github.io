@@ -503,13 +503,16 @@ function gameLoop() {
     // 请求下一帧
     requestAnimationFrame(gameLoop);
     
-    // 清除画布 - 只清除台球桌区域
+    // 清除画布 - 扩大清除区域以覆盖球杆的整个旋转范围
     const frameWidth = CUSHION_HEIGHT * 2;
+    const cueLength = 360; // 球杆长度
+    const clearMargin = cueLength + 20; // 额外的清除边距
+    
     ctx.clearRect(
-        TABLE_LEFT - frameWidth - 50, 
-        TABLE_TOP - frameWidth - 50,
-        TABLE_WIDTH + frameWidth * 2 + 100, 
-        TABLE_HEIGHT + frameWidth * 2 + 100
+        TABLE_LEFT - frameWidth - clearMargin, 
+        TABLE_TOP - frameWidth - clearMargin,
+        TABLE_WIDTH + frameWidth * 2 + clearMargin * 2, 
+        TABLE_HEIGHT + frameWidth * 2 + clearMargin * 2
     );
     
     // 绘制台球桌
