@@ -20,6 +20,7 @@ let spinSystem;
 let audioContext;
 let audioBuffers = {};
 let isAiming = false;  // 添加瞄准状态标志
+let pocketAnimations = [];
 
 // 音效文件路径
 const AUDIO_FILES = {
@@ -32,18 +33,15 @@ const AUDIO_FILES = {
  * 初始化游戏
  */
 function init() {
-    // 获取Canvas和上下文
+    // 获取画布和上下文
     canvas = document.getElementById('gameCanvas');
-    if (!canvas) {
-        console.error('找不到Canvas元素');
-        return;
-    }
+    ctx = canvas.getContext('2d');
     
     // 设置画布尺寸
     canvas.width = WINDOW_WIDTH;
     canvas.height = WINDOW_HEIGHT;
-    
-    ctx = canvas.getContext('2d');
+    canvas.style.width = `${WINDOW_WIDTH}px`;
+    canvas.style.height = `${WINDOW_HEIGHT}px`;
     
     // 创建台球桌
     table = new Table();
@@ -64,6 +62,47 @@ function init() {
     
     // 显示菜单
     document.getElementById('menu').classList.remove('d-none');
+    
+    // 创建球
+    balls = [];
+    
+    // 创建白球（母球）
+    cueBall = new Ball(
+        TABLE_LEFT + TABLE_WIDTH / 4,
+        TABLE_TOP + TABLE_HEIGHT / 2,
+        WHITE,
+        true,  // 标记为母球
+        0
+    );
+    balls.push(cueBall);
+    
+    // 创建其他球
+    const colors = [RED, BLUE, YELLOW, GREEN, BROWN, BLACK];
+    for (let i = 0; i < 10; i++) {
+        const ball = new Ball(
+            TABLE_LEFT + TABLE_WIDTH * 0.7 + (Math.random() - 0.5) * 100,
+            TABLE_TOP + TABLE_HEIGHT * 0.5 + (Math.random() - 0.5) * 100,
+            colors[i % colors.length],
+            false,  // 非母球
+            i + 1
+        );
+        balls.push(ball);
+    }
+    
+    // 设置初始分数
+    score = 0;
+    
+    // 添加分数显示
+    const scoreDiv = document.createElement('div');
+    scoreDiv.id = 'score';
+    scoreDiv.style.position = 'absolute';
+    scoreDiv.style.top = '10px';
+    scoreDiv.style.left = '10px';
+    scoreDiv.style.color = 'black';
+    scoreDiv.style.fontSize = '20px';
+    scoreDiv.style.fontWeight = 'bold';
+    scoreDiv.textContent = '得分: 0';
+    document.body.appendChild(scoreDiv);
     
     // 开始游戏循环
     gameLoop();
@@ -130,9 +169,12 @@ function addEventListeners() {
         // 空格键开始蓄力
         if (e.code === 'Space' && gameState === GAME_STATE.AIMING && !isPoweringUp) {
             isPoweringUp = true;
-            document.getElementById('power-bar').style.display = 'block';
-            // 添加动画类
-            document.getElementById('power-bar').classList.add('power-bar-active');
+            powerLevel = 0;  // 重置力度
+            const powerBar = document.getElementById('power-bar');
+            if (powerBar) {
+                powerBar.classList.remove('d-none');
+                powerBar.classList.add('power-bar-active');
+            }
         }
     });
     
@@ -142,10 +184,12 @@ function addEventListeners() {
         if (e.code === 'Space' && gameState === GAME_STATE.AIMING && isPoweringUp) {
             shootCueBall();
             isPoweringUp = false;
-            document.getElementById('power-bar').style.display = 'none';
-            document.getElementById('power-fill').style.width = '0%';
-            // 移除动画类
-            document.getElementById('power-bar').classList.remove('power-bar-active');
+            const powerBar = document.getElementById('power-bar');
+            if (powerBar) {
+                powerBar.classList.add('d-none');
+                powerBar.classList.remove('power-bar-active');
+                document.getElementById('power-fill').style.width = '0%';
+            }
         }
     });
     
@@ -368,82 +412,163 @@ function isGameOver() {
     return true;
 }
 
+// 添加星光动画系统
+class PocketAnimation {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.particles = [];
+        this.createTime = Date.now();
+        this.duration = 600; // 减少动画持续时间，从1000ms改为600ms
+        
+        // 创建粒子
+        for (let i = 0; i < 12; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                angle: Math.random() * Math.PI * 2,
+                speed: 2 + Math.random() * 3, // 增加速度，从1-3改为2-5
+                size: 3 + Math.random() * 5,
+                color: `hsl(${Math.random() * 60 + 40}, 100%, 70%)`, // 金色系
+                alpha: 1
+            });
+        }
+    }
+    
+    update() {
+        const elapsed = Date.now() - this.createTime;
+        const progress = Math.min(elapsed / this.duration, 1);
+        
+        // 更新每个粒子
+        for (let particle of this.particles) {
+            particle.x += Math.cos(particle.angle) * particle.speed;
+            particle.y += Math.sin(particle.angle) * particle.speed;
+            particle.alpha = 1 - progress;
+            particle.size -= progress * 0.1;
+        }
+        
+        // 返回动画是否结束
+        return progress < 1;
+    }
+    
+    draw(ctx) {
+        for (let particle of this.particles) {
+            if (particle.alpha <= 0) continue;
+            
+            ctx.save();
+            ctx.globalAlpha = particle.alpha;
+            ctx.fillStyle = particle.color;
+            
+            // 绘制星形
+            const spikes = 5;
+            const outerRadius = particle.size;
+            const innerRadius = particle.size / 2;
+            
+            ctx.beginPath();
+            let rot = Math.PI / 2 * 3;
+            let x = particle.x;
+            let y = particle.y;
+            let step = Math.PI / spikes;
+            
+            ctx.moveTo(x, y - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = particle.x + Math.cos(rot) * outerRadius;
+                y = particle.y + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+                
+                x = particle.x + Math.cos(rot) * innerRadius;
+                y = particle.y + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(particle.x, particle.y - outerRadius);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+}
+
 /**
  * 游戏主循环
  */
 function gameLoop() {
-    // 确保画布尺寸正确
-    if (canvas.width !== WINDOW_WIDTH || canvas.height !== WINDOW_HEIGHT) {
-        canvas.width = WINDOW_WIDTH;
-        canvas.height = WINDOW_HEIGHT;
-        canvas.style.width = `${WINDOW_WIDTH}px`;
-        canvas.style.height = `${WINDOW_HEIGHT}px`;
-        
-        // 首次设置背景色
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // 检查游戏状态
+    if (gameState === GAME_STATE.GAME_OVER) {
+        showMenu();
+        return;
     }
     
-    // 只清除台球桌区域（包括边框）
+    // 请求下一帧
+    requestAnimationFrame(gameLoop);
+    
+    // 清除画布 - 只清除台球桌区域
     const frameWidth = CUSHION_HEIGHT * 2;
     ctx.clearRect(
-        TABLE_LEFT - frameWidth - 10, 
-        TABLE_TOP - frameWidth - 10, 
-        TABLE_WIDTH + (frameWidth + 10) * 2, 
-        TABLE_HEIGHT + (frameWidth + 10) * 2
+        TABLE_LEFT - frameWidth - 50, 
+        TABLE_TOP - frameWidth - 50,
+        TABLE_WIDTH + frameWidth * 2 + 100, 
+        TABLE_HEIGHT + frameWidth * 2 + 100
     );
     
     // 绘制台球桌
     table.draw(ctx);
     
+    // 更新和绘制星光动画
+    pocketAnimations = pocketAnimations.filter(animation => {
+        const isActive = animation.update();
+        if (isActive) {
+            animation.draw(ctx);
+        }
+        return isActive;
+    });
+    
+    // 绘制球
+    for (let i = 0; i < balls.length; i++) {
+        balls[i].draw(ctx);
+    }
+    
     // 根据游戏状态执行不同逻辑
     switch (gameState) {
-        case GAME_STATE.PLAYING:
         case GAME_STATE.AIMING:
-            // 绘制瞄准线
-            if (!spinSystem.active) {
-                drawAimingLine();
-            }
-            
             // 更新力度条
             if (isPoweringUp) {
-                powerLevel = Math.min(powerLevel + 0.01, 1);
-                document.getElementById('power-fill').style.width = `${powerLevel * 100}%`;
+                // 增加力度，但不超过1
+                powerLevel = Math.min(powerLevel + 0.02, 1);
+                const powerBar = document.getElementById('power-fill');
+                if (powerBar) {
+                    powerBar.style.width = `${powerLevel * 100}%`;
+                }
             }
+            
+            // 绘制瞄准线
+            drawAimingLine();
+            
+            // 绘制球杆
+            drawCue(aimingAngle);
             break;
             
         case GAME_STATE.BALLS_MOVING:
             // 更新球的位置
             updateBalls();
             
-            // 检查所有球是否停止运动
+            // 检查是否所有球都停止运动
             if (areBallsStopped()) {
+                gameState = GAME_STATE.AIMING;
+                powerLevel = 0;  // 重置力度
+                
                 // 检查游戏是否结束
                 if (isGameOver()) {
                     gameState = GAME_STATE.GAME_OVER;
-                    setTimeout(() => {
-                        alert(`游戏结束！你的得分：${score}，用了${shots}次击球`);
-                        showMenu();
-                    }, 1000);
-                } else {
-                    // 设置为瞄准状态，可以继续击球
-                    gameState = GAME_STATE.AIMING;
-                    powerLevel = 0;
-                    document.getElementById('power-fill').style.width = '0%';
+                    showMessage("游戏结束！得分: " + score);
                 }
             }
             break;
     }
     
-    // 绘制所有球
-    for (const ball of balls) {
-        if (!ball.pocketed) {
-            ball.draw(ctx);
-        }
-    }
-    
-    // 请求下一帧
-    requestAnimationFrame(gameLoop);
+    // 检查球是否进袋
+    checkPockets();
 }
 
 /**
@@ -465,26 +590,7 @@ function updateBalls() {
     }
     
     // 检查球是否进袋
-    for (const ball of balls) {
-        if (!ball.pocketed && table.checkPocket(ball)) {
-            if (ball.isCue) {
-                // 白球进袋，重置位置
-                ball.pocketed = false;
-                ball.x = 300;
-                ball.y = WINDOW_HEIGHT / 2;
-                ball.velocityX = 0;
-                ball.velocityY = 0;
-                ball.inMotion = false;
-                showTooltip('白球进袋！已重置位置', ball.x, ball.y - 30);
-            } else {
-                // 非白球进袋得分
-                ball.pocketed = true;
-                score += 10;
-                updateStatusDisplay();
-                showTooltip('+10分！', ball.x, ball.y - 30);
-            }
-        }
-    }
+    checkPockets();
 }
 
 /**
@@ -527,7 +633,7 @@ function resetGame() {
 function startNewRound() {
     // 重置所有非母球
     for (const ball of balls) {
-        if (!ball.isCue) {
+            if (!ball.isCue) {
             ball.pocketed = false;
             // 随机分配新位置（确保不与其他球重叠）
             let validPosition = false;
@@ -556,8 +662,8 @@ function startNewRound() {
     
     // 更新游戏状态
     gameState = GAME_STATE.AIMING;
-    updateStatusDisplay();
-}
+                updateStatusDisplay();
+            }
 
 /**
  * 计算预测路径
@@ -921,7 +1027,7 @@ function drawAimingLine() {
                 break;
         }
         
-        ctx.beginPath();
+    ctx.beginPath();
         ctx.moveTo(current.x, current.y);
         ctx.lineTo(next.x, next.y);
         
@@ -929,14 +1035,14 @@ function drawAimingLine() {
         if (next.type.startsWith('targetBall')) {
             ctx.lineWidth = 3;
         } else {
-            ctx.lineWidth = 2;
+    ctx.lineWidth = 2;
         }
         
-        ctx.stroke();
-        
+    ctx.stroke();
+    
         // 在碰撞点绘制标记
         if (next.type === 'ball' || next.type === 'cushion') {
-            ctx.beginPath();
+    ctx.beginPath();
             ctx.arc(next.x, next.y, 3, 0, Math.PI * 2);
             ctx.fillStyle = next.type === 'ball' ? 'rgba(255, 215, 0, 0.8)' : 'rgba(0, 191, 255, 0.8)';
             ctx.fill();
@@ -954,8 +1060,8 @@ function drawAimingLine() {
         if (next.type === 'targetBall' || next.type === 'targetBallPocket') {
             const arrowSize = 8;
             const angle = Math.atan2(next.y - current.y, next.x - current.x);
-            
-            ctx.beginPath();
+        
+        ctx.beginPath();
             ctx.moveTo(next.x, next.y);
             ctx.lineTo(
                 next.x - arrowSize * Math.cos(angle - Math.PI/6),
@@ -967,7 +1073,7 @@ function drawAimingLine() {
             );
             ctx.closePath();
             ctx.fillStyle = next.type === 'targetBall' ? 'rgba(255, 69, 0, 0.8)' : 'rgba(50, 205, 50, 0.8)';
-            ctx.fill();
+        ctx.fill();
         }
     }
     
@@ -986,104 +1092,179 @@ function drawCue(angle) {
     const cueDistance = BALL_RADIUS + 10 + powerLevel * 50;
     const cueStartX = cueBall.x - Math.cos(angle) * cueDistance;
     const cueStartY = cueBall.y - Math.sin(angle) * cueDistance;
-    const cueEndX = cueBall.x - Math.cos(angle) * (cueDistance + 160);
-    const cueEndY = cueBall.y - Math.sin(angle) * (cueDistance + 160);
+    const cueLength = 360;  // 增加球杆长度为原来的2.25倍（原来是160）
+    const cueEndX = cueBall.x - Math.cos(angle) * (cueDistance + cueLength);
+    const cueEndY = cueBall.y - Math.sin(angle) * (cueDistance + cueLength);
     
     // 绘制球杆阴影
     ctx.beginPath();
     ctx.moveTo(cueStartX + 4, cueStartY + 4);
     ctx.lineTo(cueEndX + 4, cueEndY + 4);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.lineWidth = 10;
-    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.stroke();
     
-    // 创建球杆渐变
-    const gradient = ctx.createLinearGradient(cueStartX, cueStartY, cueEndX, cueEndY);
-    gradient.addColorStop(0, '#F5F5DC');  // 浅米色尖端
-    gradient.addColorStop(0.05, '#F5DEB3'); // 小麦色过渡
-    gradient.addColorStop(0.1, '#D2691E');  // 巧克力色
-    gradient.addColorStop(0.3, '#8B4513');  // 马鞍棕色
-    gradient.addColorStop(0.7, '#A0522D');  // 赤土棕色
-    gradient.addColorStop(0.9, '#654321');  // 深棕色
-    gradient.addColorStop(1, '#5C4033');    // 中棕色
-    
-    // 绘制球杆
+    // 绘制球杆主体
     ctx.beginPath();
     ctx.moveTo(cueStartX, cueStartY);
     ctx.lineTo(cueEndX, cueEndY);
+    
+    // 创建球杆渐变 - 更丰富的颜色过渡
+    const gradient = ctx.createLinearGradient(cueStartX, cueStartY, cueEndX, cueEndY);
+    gradient.addColorStop(0, '#F5F5DC');  // 尖端浅色
+    gradient.addColorStop(0.05, '#D2B48C'); // 过渡色
+    gradient.addColorStop(0.1, '#8B4513');  // 深棕色
+    gradient.addColorStop(0.3, '#A0522D');  // 中棕色
+    gradient.addColorStop(0.6, '#CD853F');  // 秘鲁色
+    gradient.addColorStop(0.8, '#DEB887');  // 实木色
+    gradient.addColorStop(1, '#F5DEB3');    // 小麦色
+    
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
     ctx.strokeStyle = gradient;
-    ctx.lineWidth = 10;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
-    // 绘制球杆高光
-    ctx.beginPath();
-    const highlightOffset = 2;
-    const highlightStartX = cueStartX - Math.sin(angle) * highlightOffset;
-    const highlightStartY = cueStartY + Math.cos(angle) * highlightOffset;
-    const highlightEndX = cueEndX - Math.sin(angle) * highlightOffset;
-    const highlightEndY = cueEndY + Math.cos(angle) * highlightOffset;
-    
-    ctx.moveTo(highlightStartX, highlightStartY);
-    ctx.lineTo(highlightEndX, highlightEndY);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.lineWidth = 1;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
-    // 绘制球杆尖端
-    ctx.beginPath();
-    ctx.arc(cueStartX, cueStartY, 5, 0, Math.PI * 2);
-    
-    // 创建尖端渐变
-    const tipGradient = ctx.createRadialGradient(
-        cueStartX - 1, cueStartY - 1, 0,
-        cueStartX, cueStartY, 5
-    );
-    tipGradient.addColorStop(0, '#FFFFFF');
-    tipGradient.addColorStop(0.7, '#F5F5DC');
-    tipGradient.addColorStop(1, '#E6E6C8');
-    
-    ctx.fillStyle = tipGradient;
-    ctx.fill();
-    
-    // 绘制尖端边缘
-    ctx.strokeStyle = '#D2B48C';
-    ctx.lineWidth = 1;
     ctx.stroke();
     
     // 绘制球杆装饰环
-    const ringPositions = [
-        { pos: 0.2, width: 8, color: '#000000' },
-        { pos: 0.3, width: 5, color: '#FFFFFF' },
-        { pos: 0.4, width: 5, color: '#000000' },
-        { pos: 0.6, width: 5, color: '#FFFFFF' },
-        { pos: 0.7, width: 5, color: '#000000' },
-        { pos: 0.9, width: 8, color: '#000000' }
+    const rings = [
+        { pos: 0.15, width: 8, color: '#000000' },
+        { pos: 0.2, width: 4, color: '#FFFFFF' },
+        { pos: 0.25, width: 4, color: '#000000' },
+        { pos: 0.4, width: 4, color: '#FFFFFF' },
+        { pos: 0.45, width: 4, color: '#000000' },
+        { pos: 0.6, width: 4, color: '#FFFFFF' },
+        { pos: 0.65, width: 4, color: '#000000' },
+        { pos: 0.8, width: 4, color: '#FFFFFF' },
+        { pos: 0.85, width: 8, color: '#000000' }
     ];
     
-    for (const ring of ringPositions) {
-        const ringPos = cueDistance + (cueDistance + 160 - cueDistance) * ring.pos;
-        const ringX = cueBall.x - Math.cos(angle) * ringPos;
-        const ringY = cueBall.y - Math.sin(angle) * ringPos;
+    for (const ring of rings) {
+        const ringPos = cueDistance + (cueLength * ring.pos);
+        const ringX = cueBall.x - Math.cos(angle) * (cueDistance + ringPos);
+        const ringY = cueBall.y - Math.sin(angle) * (cueDistance + ringPos);
         
         ctx.beginPath();
         ctx.arc(ringX, ringY, ring.width/2, 0, Math.PI * 2);
         ctx.fillStyle = ring.color;
         ctx.fill();
         
-        // 添加环的高光
+        // 为黑色环添加高光
         if (ring.color === '#000000') {
             ctx.beginPath();
             ctx.arc(
-                ringX - Math.sin(angle) * 1.5,
-                ringY + Math.cos(angle) * 1.5,
-                ring.width/6, 0, Math.PI * 2
+                ringX - Math.sin(angle),
+                ringY + Math.cos(angle),
+                ring.width/6,
+                0,
+                Math.PI * 2
             );
             ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.fill();
         }
+    }
+    
+    // 绘制球杆尖端
+    ctx.beginPath();
+    ctx.arc(cueStartX, cueStartY, 4, 0, Math.PI * 2);
+    
+    // 创建尖端渐变
+    const tipGradient = ctx.createRadialGradient(
+        cueStartX, cueStartY, 0,
+        cueStartX, cueStartY, 4
+    );
+    tipGradient.addColorStop(0, '#FFFFFF');
+    tipGradient.addColorStop(0.7, '#F5F5DC');
+    tipGradient.addColorStop(1, '#D2B48C');
+    
+    ctx.fillStyle = tipGradient;
+    ctx.fill();
+    
+    // 绘制球杆尾部
+    ctx.beginPath();
+    ctx.arc(cueEndX, cueEndY, 6, 0, Math.PI * 2);
+    
+    // 创建尾部渐变
+    const endGradient = ctx.createRadialGradient(
+        cueEndX, cueEndY, 0,
+        cueEndX, cueEndY, 6
+    );
+    endGradient.addColorStop(0, '#DEB887');
+    endGradient.addColorStop(0.7, '#A0522D');
+    endGradient.addColorStop(1, '#8B4513');
+    
+    ctx.fillStyle = endGradient;
+    ctx.fill();
+    
+    // 绘制球杆高光
+    ctx.beginPath();
+    ctx.moveTo(cueStartX + Math.sin(angle) * 2, cueStartY - Math.cos(angle) * 2);
+    ctx.lineTo(cueEndX + Math.sin(angle) * 2, cueEndY - Math.cos(angle) * 2);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+}
+
+// 修改checkPockets函数，添加入袋动画
+function checkPockets() {
+    for (let i = balls.length - 1; i >= 0; i--) {
+        const pocketIndex = table.checkPocket(balls[i]);
+        if (pocketIndex !== -1) {
+            // 播放入袋音效
+            playSound('pocket');
+            
+            // 创建入袋动画
+            const pocket = table.pockets[pocketIndex];
+            pocketAnimations.push(new PocketAnimation(pocket.x, pocket.y));
+            
+            // 白球特殊处理
+            if (balls[i].isCue) {
+                // 白球进袋，重置位置
+                balls[i].x = TABLE_LEFT + TABLE_WIDTH / 4;
+                balls[i].y = TABLE_TOP + TABLE_HEIGHT / 2;
+                balls[i].velocityX = 0;
+                balls[i].velocityY = 0;
+                
+                // 显示提示
+                showMessage("白球进袋！已重置位置");
+            } else {
+                // 非白球进袋，移除球
+                balls.splice(i, 1);
+                
+                // 更新分数
+                score += 10;
+                updateScore();
+            }
+        }
+    }
+}
+
+// 添加显示消息的函数
+function showMessage(text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'game-message';
+    messageDiv.textContent = text;
+    messageDiv.style.position = 'absolute';
+    messageDiv.style.top = '20px';
+    messageDiv.style.left = '50%';
+    messageDiv.style.transform = 'translateX(-50%)';
+    messageDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    messageDiv.style.color = 'white';
+    messageDiv.style.padding = '10px 20px';
+    messageDiv.style.borderRadius = '5px';
+    messageDiv.style.zIndex = '1000';
+    
+    document.body.appendChild(messageDiv);
+    
+    // 2秒后移除消息
+    setTimeout(() => {
+        document.body.removeChild(messageDiv);
+    }, 2000);
+}
+
+// 更新分数显示
+function updateScore() {
+    const scoreElement = document.getElementById('score');
+    if (scoreElement) {
+        scoreElement.textContent = `得分: ${score}`;
     }
 }
 

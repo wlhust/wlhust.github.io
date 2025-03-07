@@ -3,9 +3,9 @@
  */
 
 // 颜色定义
-const GREEN = '#2d5a27';  // 台面主色调
-const DARK_GREEN = '#1d4b1a';  // 台面渐变起始色
-const LIGHT_GREEN = '#3a6b33';  // 台面渐变结束色
+const GREEN = '#0C6B3C';  // 台面主色调（毛毡绿色）
+const DARK_GREEN = '#0C6B3C';  // 台面渐变起始色
+const LIGHT_GREEN = '#0C6B3C';  // 台面渐变结束色
 const BROWN = '#2B1810';  // 边框主色调（深棕色）
 const LIGHT_BROWN = '#3D2317';  // 边框高光色（稍浅的深棕色）
 const WOOD_COLOR = '#2B1810';  // 木质边框色
@@ -15,7 +15,11 @@ const GOLD = '#ffd700';  // 袋口高亮色
 const BLACK = '#000000';
 const BLUE = '#0000FF';
 const YELLOW = '#FFFF00';
-const FELT_GREEN = '#2d5a27';  // 毛毡绿色
+const FELT_GREEN = '#0C6B3C';  // 毛毡绿色
+const RAIL_DECORATION_COLOR = '#ffffff';  // 边框装饰点颜色
+const RAIL_SHADOW = 'rgba(0, 0, 0, 0.5)';  // 库边阴影颜色
+const RAIL_COLOR = '#0C6B3C';  // 库边颜色，与台面相同
+const FRAME_COLOR = '#2B1810';  // 木质外框颜色，与BROWN相同
 
 // 游戏窗口设置
 const WINDOW_WIDTH = 1200;
@@ -49,10 +53,7 @@ const ELASTICITY = 0.8;  // 弹性系数
 
 // 台球桌装饰
 const CUSHION_HEIGHT = 30;  // 增加边框宽度
-const RAIL_COLOR = '#6b3e2e';  // 边框颜色
 const RAIL_HIGHLIGHT = '#8b5e4e';  // 边框高光色
-const RAIL_SHADOW = 'rgba(0,0,0,0.3)';  // 边框阴影色
-const RAIL_DECORATION_COLOR = '#ffffff';  // 边框装饰点颜色
 
 // 游戏状态
 const GAME_STATE = {
