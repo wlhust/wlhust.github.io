@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CartPole PPO 实验</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --card-border: #e9ecef;
+            --canvas-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #61afef;
+            --secondary-color: #98c379;
+            --background-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --card-bg: #252526;
+            --card-border: #404040;
+            --canvas-bg: #2d2d2d;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        #gameCanvas {
+            background-color: var(--canvas-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            aspect-ratio: 2/1;
+        }
+
+        .control-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .chart-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            height: 200px;
+        }
+
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 24px;
+            position: relative;
+            width: 48px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            background-color: white;
+            bottom: 4px;
+            content: "";
+            height: 16px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 16px;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .theme-mode-text {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .progress {
+            background-color: var(--canvas-bg);
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .nav-link.active {
+            color: var(--primary-color) !important;
+            opacity: 1;
+        }
+
+        .nav-tabs {
+            border-color: var(--card-border);
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: var(--card-border);
+        }
+
+        .tab-content {
+            padding: 1rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-top: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="reinforcement_learning.html" class="text-decoration-none">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        <span>返回示例集</span>
+                    </a>
+                    <h1 class="h3 mb-0 mt-2">CartPole PPO 实验</h1>
+                </div>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="checkbox">
+                        <input type="checkbox" id="checkbox" />
+                        <div class="slider"></div>
+                    </label>
+                    <span class="theme-mode-text">暗色模式</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <canvas id="gameCanvas" width="800" height="400"></canvas>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5 class="text-center">奖励曲线</h5>
+                            <canvas id="rewardChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5 class="text-center">损失曲线</h5>
+                            <canvas id="lossChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="control-panel">
+                    <h4 class="mb-3">控制面板</h4>
+                    <div class="mb-3">
+                        <button id="startTraining" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-play-fill me-2"></i>开始训练
+                        </button>
+                        <button id="stopTraining" class="btn btn-outline-danger w-100 mb-2" disabled>
+                            <i class="bi bi-stop-fill me-2"></i>停止训练
+                        </button>
+                        <button id="resetEnv" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>重置环境
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <h4 class="mb-3">训练统计</h4>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>回合数：</span>
+                            <span id="episodeCount">0</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>当前步数：</span>
+                            <span id="currentSteps">0</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>最长步数：</span>
+                            <span id="maxSteps">0</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>平均步数：</span>
+                            <span id="averageSteps">0</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>训练时间：</span>
+                            <span id="trainingTime">00:00:00</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>总更新次数：</span>
+                            <span id="updatesCount">0</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>当前损失：</span>
+                            <span id="currentLoss">0.000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-panel mt-3">
+                    <h4 class="mb-3">Actor-Critic 网络</h4>
+                    <div class="mb-3">
+                        <h6>动作概率分布</h6>
+                        <div class="progress mb-2">
+                            <div id="actionProb0" class="progress-bar" role="progressbar" style="width: 50%">左移</div>
+                        </div>
+                        <div class="progress">
+                            <div id="actionProb1" class="progress-bar bg-success" role="progressbar" style="width: 50%">右移</div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>价值估计：</span>
+                            <span id="valueEstimate">0.000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="algorithmTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">实验概述</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="algorithm-tab" data-bs-toggle="tab" data-bs-target="#algorithm" type="button" role="tab">算法详解</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="parameters-tab" data-bs-toggle="tab" data-bs-target="#parameters" type="button" role="tab">参数说明</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="algorithmTabContent">
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <h5>CartPole 问题</h5>
+                        <p>CartPole是强化学习中的经典控制问题。智能体需要通过左右移动小车来保持杆子处于竖直平衡状态。</p>
+                        <h6>环境说明：</h6>
+                        <ul>
+                            <li>状态空间：小车位置、速度、杆子角度、角速度（4维）</li>
+                            <li>动作空间：向左或向右推动小车（离散，2维）</li>
+                            <li>奖励设计：每保持一步平衡得1分，杆子倒下或小车出界则结束</li>
+                            <li>终止条件：杆子倾角超过12度，或小车位置超出范围</li>
+                        </ul>
+                    </div>
+                    <div class="tab-pane fade" id="algorithm" role="tabpanel">
+                        <h5>PPO（Proximal Policy Optimization）算法</h5>
+                        <p>PPO是一种策略梯度算法，它通过以下方式提高训练稳定性：</p>
+                        <ul>
+                            <li>使用截断的替代目标函数，避免过大的策略更新</li>
+                            <li>同时训练策略网络和价值网络</li>
+                            <li>使用GAE（Generalized Advantage Estimation）计算优势函数</li>
+                        </ul>
+                        <h6>网络架构：</h6>
+                        <ul>
+                            <li>共享特征提取层：两个全连接层（64和32个单元）</li>
+                            <li>策略网络（Actor）：输出动作概率分布</li>
+                            <li>价值网络（Critic）：评估状态价值</li>
+                        </ul>
+                    </div>
+                    <div class="tab-pane fade" id="parameters" role="tabpanel">
+                        <h5>训练参数</h5>
+                        <ul>
+                            <li>学习率：0.001</li>
+                            <li>折扣因子（γ）：0.99</li>
+                            <li>GAE参数（λ）：0.95</li>
+                            <li>PPO裁剪范围（ε）：0.2</li>
+                            <li>价值函数系数：0.5</li>
+                            <li>每次更新的经验数量：100步</li>
+                        </ul>
+                        <h6>目标：</h6>
+                        <p>当智能体能够在单次回合中保持平衡475步以上时，认为训练成功。这相当于维持平衡约47.5秒。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class CartPoleVisualizer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.width = canvas.width;
+                this.height = canvas.height;
+                
+                // 可视化参数
+                this.scale = 100;  // 像素/米
+                this.cartWidth = 50;
+                this.cartHeight = 30;
+                this.poleWidth = 10;
+                this.wheelRadius = 5;
+                
+                // 统计信息
+                this.episodeRewards = [];
+                this.maxReward = 0;
+                this.startTime = null;
+            }
+            
+            render(state, episode, totalReward, fps) {
+                // 清空画布
+                this.ctx.fillStyle = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--canvas-bg');
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                const [x, _, theta, __] = state;
+                
+                // 转换坐标（将原点移到画布中心）
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                
+                // 绘制地面
+                this.ctx.strokeStyle = '#666';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, centerY + 50);
+                this.ctx.lineTo(this.width, centerY + 50);
+                this.ctx.stroke();
+                
+                // 绘制小车
+                const cartX = centerX + x * this.scale;
+                const cartY = centerY;
+                
+                this.ctx.fillStyle = '#3498db';
+                this.ctx.fillRect(
+                    cartX - this.cartWidth/2,
+                    cartY - this.cartHeight/2,
+                    this.cartWidth,
+                    this.cartHeight
+                );
+                
+                // 绘制车轮
+                this.ctx.fillStyle = '#2c3e50';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    cartX - this.cartWidth/4,
+                    cartY + this.cartHeight/2,
+                    this.wheelRadius,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    cartX + this.cartWidth/4,
+                    cartY + this.cartHeight/2,
+                    this.wheelRadius,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+                
+                // 绘制杆子
+                const poleLength = 100;
+                const poleEndX = cartX + Math.sin(theta) * poleLength;
+                const poleEndY = cartY - Math.cos(theta) * poleLength;
+                
+                this.ctx.strokeStyle = '#e74c3c';
+                this.ctx.lineWidth = this.poleWidth;
+                this.ctx.beginPath();
+                this.ctx.moveTo(cartX, cartY);
+                this.ctx.lineTo(poleEndX, poleEndY);
+                this.ctx.stroke();
+                
+                // 更新统计信息
+                this.updateStats(episode, totalReward, fps);
+            }
+            
+            updateStats(episode, reward, fps) {
+                if (!this.startTime) {
+                    this.startTime = Date.now();
+                }
+                
+                this.episodeRewards.push(reward);
+                if (this.episodeRewards.length > 100) {
+                    this.episodeRewards.shift();
+                }
+                
+                this.maxReward = Math.max(this.maxReward, reward);
+                const avgReward = this.episodeRewards.reduce((a, b) => a + b, 0) / this.episodeRewards.length;
+                
+                // 更新UI
+                document.getElementById('episodeCount').textContent = episode;
+                document.getElementById('currentSteps').textContent = Math.floor(reward);
+                document.getElementById('maxSteps').textContent = Math.floor(this.maxReward);
+                document.getElementById('averageSteps').textContent = Math.floor(avgReward);
+                
+                const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                const hours = Math.floor(elapsed / 3600);
+                const minutes = Math.floor((elapsed % 3600) / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('trainingTime').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // 主程序
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('gameCanvas');
+            const visualizer = new CartPoleVisualizer(canvas);
+            let ws = null;
+            let isTraining = false;
+            
+            // 初始化奖励图表
+            const rewardCtx = document.getElementById('rewardChart').getContext('2d');
+            window.rewardChart = new Chart(rewardCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '回合步数',
+                        data: [],
+                        borderColor: '#3498db',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // 初始化损失图表
+            const lossCtx = document.getElementById('lossChart').getContext('2d');
+            window.lossChart = new Chart(lossCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '训练损失',
+                        data: [],
+                        borderColor: '#e74c3c',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 更新UI函数
+            function updateUI(data) {
+                // 更新动作概率
+                if (data.action_probs) {
+                    document.getElementById('actionProb0').style.width = `${data.action_probs[0] * 100}%`;
+                    document.getElementById('actionProb0').textContent = `左移 (${(data.action_probs[0] * 100).toFixed(1)}%)`;
+                    document.getElementById('actionProb1').style.width = `${data.action_probs[1] * 100}%`;
+                    document.getElementById('actionProb1').textContent = `右移 (${(data.action_probs[1] * 100).toFixed(1)}%)`;
+                }
+
+                // 更新价值估计
+                if (data.value_estimate !== undefined) {
+                    document.getElementById('valueEstimate').textContent = data.value_estimate.toFixed(3);
+                }
+
+                // 更新损失
+                if (data.total_loss !== undefined) {
+                    document.getElementById('currentLoss').textContent = data.total_loss.toFixed(4);
+                    
+                    // 更新损失图表
+                    if (lossChart.data.labels.length > 50) {
+                        lossChart.data.labels.shift();
+                        lossChart.data.datasets[0].data.shift();
+                    }
+                    lossChart.data.labels.push(data.episode);
+                    lossChart.data.datasets[0].data.push(data.total_loss);
+                    lossChart.update('none');
+                }
+
+                // 更新训练统计
+                if (data.training_stats) {
+                    document.getElementById('updatesCount').textContent = data.training_stats.updates_count;
+                }
+
+                // 更新奖励图表
+                if (rewardChart.data.labels.length > 50) {
+                    rewardChart.data.labels.shift();
+                    rewardChart.data.datasets[0].data.shift();
+                }
+                rewardChart.data.labels.push(data.episode);
+                rewardChart.data.datasets[0].data.push(data.reward);
+                rewardChart.update('none');
+
+                // 更新基本统计信息
+                visualizer.updateStats(data.episode, data.reward, data.fps);
+            }
+            
+            // 连接WebSocket
+            function connectWebSocket() {
+                ws = new WebSocket('ws://localhost:8765');
+                
+                ws.onopen = function() {
+                    console.log('Connected to training server');
+                    document.getElementById('startTraining').disabled = false;
+                };
+                
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'solved') {
+                        alert(`训练成功！\n回合数：${data.episode}\n总步数：${data.total_steps}\n最终奖励：${data.final_reward.toFixed(1)}`);
+                        stopTraining();
+                    } else {
+                        visualizer.render(data.state, data.episode, data.reward, data.fps);
+                        updateUI(data);
+                    }
+                };
+                
+                ws.onclose = function(event) {
+                    console.log('Disconnected from training server:', event.code, event.reason);
+                    if (isTraining) {
+                        stopTraining();
+                    }
+                    setTimeout(connectWebSocket, 1000);  // 尝试重新连接
+                };
+                
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                };
+            }
+            
+            function startTraining() {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    isTraining = true;
+                    document.getElementById('startTraining').disabled = true;
+                    document.getElementById('stopTraining').disabled = false;
+                    visualizer.startTime = Date.now();
+                    visualizer.episodeRewards = [];
+                    visualizer.maxReward = 0;
+                    
+                    // 重置图表
+                    rewardChart.data.labels = [];
+                    rewardChart.data.datasets[0].data = [];
+                    rewardChart.update();
+                    
+                    lossChart.data.labels = [];
+                    lossChart.data.datasets[0].data = [];
+                    lossChart.update();
+                    
+                    // 发送开始训练的信号
+                    ws.send(JSON.stringify({command: 'start'}));
+                }
+            }
+            
+            function stopTraining() {
+                isTraining = false;
+                document.getElementById('startTraining').disabled = false;
+                document.getElementById('stopTraining').disabled = true;
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+            }
+            
+            // 事件监听
+            document.getElementById('startTraining').addEventListener('click', startTraining);
+            document.getElementById('stopTraining').addEventListener('click', stopTraining);
+            document.getElementById('resetEnv').addEventListener('click', function() {
+                stopTraining();
+                connectWebSocket();
+            });
+            
+            // 主题切换
+            const themeSwitch = document.getElementById('checkbox');
+            const themeModeText = document.querySelector('.theme-mode-text');
+            
+            function toggleTheme() {
+                if (themeSwitch.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeModeText.textContent = '亮色模式';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    themeModeText.textContent = '暗色模式';
+                    localStorage.setItem('theme', 'light');
+                }
+            }
+            
+            themeSwitch.addEventListener('change', toggleTheme);
+            
+            // 检查本地存储中的主题设置
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                themeSwitch.checked = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeModeText.textContent = '亮色模式';
+            }
+            
+            // 连接到训练服务器
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html> 

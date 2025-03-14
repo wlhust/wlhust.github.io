@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>强化学习示例集</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --card-border: #e9ecef;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #61afef;
+            --secondary-color: #98c379;
+            --background-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --card-bg: #252526;
+            --card-border: #404040;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .example-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            transition: transform 0.2s;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .example-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .example-card .card-img-wrapper {
+            position: relative;
+            padding-top: 56.25%; /* 16:9 比例 */
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        .example-card .card-img-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .example-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .difficulty {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            color: white;
+            font-size: 0.875rem;
+            z-index: 1;
+        }
+
+        .difficulty-beginner {
+            background-color: #2ecc71;
+        }
+
+        .difficulty-intermediate {
+            background-color: #f1c40f;
+        }
+
+        .difficulty-advanced {
+            background-color: #e74c3c;
+        }
+
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 24px;
+            position: relative;
+            width: 48px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            background-color: white;
+            bottom: 4px;
+            content: "";
+            height: 16px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 16px;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .theme-mode-text {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .algorithm-info {
+            margin-top: 3rem;
+            padding: 2rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+        }
+
+        .algorithm-info h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .algorithm-info .nav-link {
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .algorithm-info .nav-link.active {
+            color: var(--primary-color);
+            opacity: 1;
+        }
+
+        .tab-content {
+            padding-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="index.html" class="text-decoration-none">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        <span>返回首页</span>
+                    </a>
+                    <h1 class="h3 mb-0 mt-2">强化学习示例集</h1>
+                </div>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="checkbox">
+                        <input type="checkbox" id="checkbox" />
+                        <div class="slider"></div>
+                    </label>
+                    <span class="theme-mode-text">暗色模式</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mb-5">
+        <div class="row g-4">
+            <!-- CartPole PPO -->
+            <div class="col-lg-4">
+                <div class="example-card">
+                    <div class="card-img-wrapper">
+                        <img src="https://gymnasium.farama.org/_images/cart_pole.gif" class="card-img-top" alt="CartPole">
+                        <span class="difficulty difficulty-intermediate">中等难度</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">CartPole PPO</h5>
+                        <p class="card-text">使用PPO算法控制小车平衡杆子，展示了策略梯度方法的实际应用。</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="cartpole.html" class="btn btn-primary">
+                                <i class="bi bi-play-fill me-2"></i>开始实验
+                            </a>
+                            <span class="text-muted">
+                                <i class="bi bi-clock me-1"></i>约15分钟
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MountainCar DQN -->
+            <div class="col-lg-4">
+                <div class="example-card">
+                    <div class="card-img-wrapper">
+                        <img src="https://gymnasium.farama.org/_images/mountain_car.gif" class="card-img-top" alt="MountainCar">
+                        <span class="difficulty difficulty-advanced">高级难度</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">MountainCar DQN</h5>
+                        <p class="card-text">使用DQN算法控制小车爬山，展示了值函数逼近和经验回放的应用。</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="mountaincar.html" class="btn btn-primary">
+                                <i class="bi bi-play-fill me-2"></i>开始实验
+                            </a>
+                            <span class="text-muted">
+                                <i class="bi bi-clock me-1"></i>约20分钟
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simple Moving -->
+            <div class="col-lg-4">
+                <div class="example-card">
+                    <div class="card-img-wrapper">
+                        <img src="https://raw.githubusercontent.com/openai/gym/master/gym/envs/classic_control/assets/simple_moving.png" class="card-img-top" alt="Simple Moving">
+                        <span class="difficulty difficulty-beginner">入门级</span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Simple Moving</h5>
+                        <p class="card-text">一个简单的移动控制示例，适合初学者了解强化学习的基本概念。</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="simple_moving.html" class="btn btn-primary">
+                                <i class="bi bi-play-fill me-2"></i>开始实验
+                            </a>
+                            <span class="text-muted">
+                                <i class="bi bi-clock me-1"></i>约10分钟
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="algorithm-info">
+            <h2>算法说明</h2>
+            <ul class="nav nav-tabs" id="algorithmTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="ppo-tab" data-bs-toggle="tab" data-bs-target="#ppo" type="button" role="tab">PPO算法</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="dqn-tab" data-bs-toggle="tab" data-bs-target="#dqn" type="button" role="tab">DQN算法</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">基础概念</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="algorithmTabContent">
+                <div class="tab-pane fade show active" id="ppo" role="tabpanel">
+                    <h5>PPO（Proximal Policy Optimization）算法</h5>
+                    <p>PPO是一种策略梯度算法，它通过以下方式提高训练稳定性：</p>
+                    <ul>
+                        <li>使用截断的替代目标函数，避免过大的策略更新</li>
+                        <li>同时训练策略网络和价值网络</li>
+                        <li>使用GAE（Generalized Advantage Estimation）计算优势函数</li>
+                    </ul>
+                </div>
+                <div class="tab-pane fade" id="dqn" role="tabpanel">
+                    <h5>DQN（Deep Q-Network）算法</h5>
+                    <p>DQN是一种值函数方法，它结合了以下关键技术：</p>
+                    <ul>
+                        <li>经验回放：存储和重用过去的经验</li>
+                        <li>目标网络：使用单独的网络计算目标值</li>
+                        <li>深度神经网络：进行值函数逼近</li>
+                    </ul>
+                </div>
+                <div class="tab-pane fade" id="basic" role="tabpanel">
+                    <h5>强化学习基础概念</h5>
+                    <ul>
+                        <li>状态（State）：环境在某一时刻的描述</li>
+                        <li>动作（Action）：智能体可以采取的行为</li>
+                        <li>奖励（Reward）：环境对动作的反馈信号</li>
+                        <li>策略（Policy）：决定在给定状态下采取什么动作</li>
+                        <li>值函数（Value Function）：评估状态或动作的长期收益</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 主题切换
+        const themeSwitch = document.getElementById('checkbox');
+        const themeModeText = document.querySelector('.theme-mode-text');
+        
+        function toggleTheme() {
+            if (themeSwitch.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeModeText.textContent = '亮色模式';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeModeText.textContent = '暗色模式';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        themeSwitch.addEventListener('change', toggleTheme);
+        
+        // 检查本地存储中的主题设置
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            themeSwitch.checked = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeModeText.textContent = '亮色模式';
+        }
+    </script>
+</body>
+</html> 

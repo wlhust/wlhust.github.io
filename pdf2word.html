@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF转Word工具 - 在线工具集合</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --card-border: #e9ecef;
+            --card-hover-shadow: rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #61afef;
+            --secondary-color: #98c379;
+            --background-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --card-bg: #252526;
+            --card-border: #404040;
+            --card-hover-shadow: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-container {
+            flex: 1;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            transition: all var(--transition-speed);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--card-border);
+            border-radius: 10px;
+            padding: 3rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            background-color: var(--card-bg);
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background-color: var(--card-bg);
+        }
+
+        .file-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-right: 1rem;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            word-break: break-all;
+        }
+
+        .file-size {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .file-remove {
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all var(--transition-speed);
+        }
+
+        .file-remove:hover {
+            color: #c0392b;
+        }
+
+        .progress-container {
+            margin-top: 1.5rem;
+        }
+
+        .progress {
+            height: 0.75rem;
+            background-color: var(--card-border);
+        }
+
+        .progress-bar {
+            background-color: var(--primary-color);
+        }
+
+        .features-list {
+            margin-top: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-text p {
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .result-card {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 24px;
+            position: relative;
+            width: 48px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider:before {
+            background-color: white;
+            bottom: 4px;
+            content: "";
+            height: 16px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 16px;
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .theme-mode-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="index.html" class="text-decoration-none">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        <span>返回首页</span>
+                    </a>
+                    <h1 class="h3 mb-0 mt-2">PDF转Word工具</h1>
+                </div>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="checkbox">
+                        <input type="checkbox" id="checkbox" />
+                        <div class="slider"></div>
+                    </label>
+                    <span class="theme-mode-text">暗色模式</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main-container mb-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card p-4">
+                    <h2 class="h4 mb-4">上传PDF文件</h2>
+                    
+                    <!-- 上传区域 -->
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                        </div>
+                        <h3 class="h5 mb-3">拖放PDF文件到这里或点击上传</h3>
+                        <p class="text-muted mb-3">支持的文件格式: PDF</p>
+                        <button class="btn btn-primary px-4" id="browseButton">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>浏览文件
+                        </button>
+                    </div>
+
+                    <!-- 文件信息区域 -->
+                    <div id="fileInfoContainer" style="display: none;" class="mt-4">
+                        <div class="file-info">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name" id="fileName">document.pdf</div>
+                                <div class="file-size" id="fileSize">2.5 MB</div>
+                            </div>
+                            <div class="file-remove" id="removeFile">
+                                <i class="bi bi-x-circle"></i>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <button class="btn btn-primary" id="convertButton">
+                                <i class="bi bi-arrow-repeat me-2"></i>开始转换
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 进度条 -->
+                    <div class="progress-container" id="progressContainer" style="display: none;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>转换进度</span>
+                            <span id="progressPercentage">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- 结果区域 -->
+                    <div class="result-card" id="resultCard">
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span>转换成功！您的文件已准备好下载。</span>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-word"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name" id="resultFileName">document.docx</div>
+                                <div class="file-size" id="resultFileSize">2.3 MB</div>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2 mt-3">
+                            <button class="btn btn-success" id="downloadButton">
+                                <i class="bi bi-download me-2"></i>下载Word文档
+                            </button>
+                            <button class="btn btn-outline-primary" id="convertAnotherButton">
+                                <i class="bi bi-arrow-repeat me-2"></i>转换另一个文件
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card p-4">
+                    <h3 class="h4 mb-4">功能特点</h3>
+                    <div class="features-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>安全可靠</h4>
+                                <p>所有文件处理在您的浏览器中完成，不会上传到服务器，保障您的数据安全。</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="bi bi-layout-text-window"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>保留格式</h4>
+                                <p>精确转换，最大程度保留原始PDF文档的格式、字体和布局。</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="bi bi-lightning-charge"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>快速高效</h4>
+                                <p>采用先进的转换引擎，快速处理文件，节省您的宝贵时间。</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="bi bi-laptop"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h4>无需安装</h4>
+                                <p>完全基于Web的解决方案，无需下载或安装任何软件，随时随地使用。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 加载中遮罩 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.21/mammoth.browser.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 主题切换功能
+            const themeSwitch = document.getElementById('checkbox');
+            const themeModeText = document.querySelector('.theme-mode-text');
+
+            // 切换暗色/亮色模式
+            function toggleTheme() {
+                if (themeSwitch.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeModeText.textContent = '亮色模式';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    themeModeText.textContent = '暗色模式';
+                    localStorage.setItem('theme', 'light');
+                }
+            }
+
+            // 检查本地存储中的主题设置
+            function checkTheme() {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    themeSwitch.checked = true;
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeModeText.textContent = '亮色模式';
+                } else {
+                    themeSwitch.checked = false;
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    themeModeText.textContent = '暗色模式';
+                }
+            }
+
+            // 事件监听
+            themeSwitch.addEventListener('change', toggleTheme);
+
+            // 初始化主题
+            checkTheme();
+
+            // PDF转Word功能
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const browseButton = document.getElementById('browseButton');
+            const fileInfoContainer = document.getElementById('fileInfoContainer');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const removeFile = document.getElementById('removeFile');
+            const convertButton = document.getElementById('convertButton');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const resultCard = document.getElementById('resultCard');
+            const resultFileName = document.getElementById('resultFileName');
+            const resultFileSize = document.getElementById('resultFileSize');
+            const downloadButton = document.getElementById('downloadButton');
+            const convertAnotherButton = document.getElementById('convertAnotherButton');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            let selectedFile = null;
+            let convertedFile = null;
+
+            // 点击上传区域触发文件选择
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            // 点击浏览按钮触发文件选择
+            browseButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                fileInput.click();
+            });
+
+            // 文件选择变化
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    handleFile(this.files[0]);
+                }
+            });
+
+            // 拖放功能
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--primary-color)';
+                uploadArea.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
+            });
+
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.style.borderColor = 'var(--card-border)';
+                uploadArea.style.backgroundColor = 'var(--card-bg)';
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--card-border)';
+                uploadArea.style.backgroundColor = 'var(--card-bg)';
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type === 'application/pdf') {
+                        handleFile(file);
+                    } else {
+                        alert('请上传PDF文件');
+                    }
+                }
+            });
+
+            // 处理选择的文件
+            function handleFile(file) {
+                if (file.type !== 'application/pdf') {
+                    alert('请上传PDF文件');
+                    return;
+                }
+
+                selectedFile = file;
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                
+                uploadArea.style.display = 'none';
+                fileInfoContainer.style.display = 'block';
+            }
+
+            // 移除选择的文件
+            removeFile.addEventListener('click', function() {
+                resetUI();
+            });
+
+            // 开始转换
+            convertButton.addEventListener('click', function() {
+                if (!selectedFile) return;
+                
+                fileInfoContainer.style.display = 'none';
+                progressContainer.style.display = 'block';
+                
+                // 模拟转换进度
+                simulateConversion();
+            });
+
+            // 下载转换后的文件
+            downloadButton.addEventListener('click', function() {
+                if (convertedFile) {
+                    const link = document.createElement('a');
+                    link.href = convertedFile;
+                    link.download = selectedFile.name.replace('.pdf', '.docx');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            });
+
+            // 转换另一个文件
+            convertAnotherButton.addEventListener('click', function() {
+                resetUI();
+            });
+
+            // 重置UI
+            function resetUI() {
+                selectedFile = null;
+                convertedFile = null;
+                fileInput.value = '';
+                uploadArea.style.display = 'block';
+                fileInfoContainer.style.display = 'none';
+                progressContainer.style.display = 'none';
+                resultCard.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressPercentage.textContent = '0%';
+            }
+
+            // 格式化文件大小
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // 模拟转换过程
+            function simulateConversion() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        
+                        // 显示加载遮罩
+                        loadingOverlay.style.display = 'flex';
+                        
+                        // 模拟处理延迟
+                        setTimeout(() => {
+                            // 创建一个示例Word文档（实际应用中应使用真正的PDF到Word转换库）
+                            createSampleWordFile().then(docxUrl => {
+                                convertedFile = docxUrl;
+                                
+                                // 更新结果信息
+                                resultFileName.textContent = selectedFile.name.replace('.pdf', '.docx');
+                                resultFileSize.textContent = formatFileSize(Math.floor(selectedFile.size * 0.9)); // 假设转换后文件略小
+                                
+                                // 隐藏加载遮罩
+                                loadingOverlay.style.display = 'none';
+                                
+                                // 显示结果
+                                progressContainer.style.display = 'none';
+                                resultCard.style.display = 'block';
+                            });
+                        }, 2000);
+                    }
+                    
+                    progressBar.style.width = `${progress}%`;
+                    progressPercentage.textContent = `${Math.floor(progress)}%`;
+                }, 200);
+            }
+
+            // 创建示例Word文档（在实际应用中，这里应该是真正的PDF到Word转换逻辑）
+            async function createSampleWordFile() {
+                // 这里只是创建一个简单的文本文件作为示例
+                // 在实际应用中，应该使用专门的PDF到Word转换库
+                
+                const text = `这是一个示例Word文档，由PDF转换而来。
+                
+在实际应用中，您需要使用专业的PDF解析和Word生成库来实现完整的转换功能。
+                
+可能的解决方案包括：
+1. 使用服务器端转换API
+2. 使用WebAssembly版本的转换库
+3. 使用第三方服务进行转换
+
+本示例仅作演示用途。`;
+                
+                const blob = new Blob([text], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                return URL.createObjectURL(blob);
+            }
+        });
+    </script>
+</body>
+</html> 

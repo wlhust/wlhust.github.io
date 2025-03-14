@@ -2,171 +2,865 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>台球游戏</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 自定义样式 -->
-    <link href="css/styles.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具集</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
+        :root {
+            --primary-color: #a2b4e2;
+            --text-color: #1d1d1f;
+            --text-secondary: #86868b;
+            --background-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+            --header-bg: rgba(255, 255, 255, 0.8);
+            --footer-bg: #f5f5f7;
+            --border-radius: 16px;
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #a2b4e2;
+            --text-color: #f5f5f7;
+            --text-secondary: #a1a1a6;
+            --background-color: #000000;
+            --card-bg: #1d1d1f;
+            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            --header-bg: rgba(0, 0, 0, 0.8);
+            --footer-bg: #1d1d1f;
+        }
+
         body {
-            margin: 0;
-            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.01em;
+        }
+
+        .navbar {
+            background-color: rgb(235, 92, 32); /* 更新为指定的橘色 */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background-color var(--transition-speed);
+            padding: 0.15rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: none;
+        }
+
+        [data-theme="dark"] .navbar {
+            background-color: rgb(235, 92, 32); /* 暗色模式也使用相同的橘色 */
+            border-bottom: none;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: white; /* 文字改为白色，与橘色背景形成对比 */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .themes-container {
+            padding: 2rem 0 0;
+        }
+
+        .tool-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            height: 100%;
+            transition: all var(--transition-speed);
+            position: relative;
             overflow: hidden;
-            background-color: #1a1a1a;
+            border: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .tool-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            width: 100vw;
-        }
-        
-        canvas {
-            display: block;
-            background-color: #1a1a1a;
-            max-width: 100%;
-            max-height: 100%;
-        }
-        
-        #menu {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-        }
-        
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
+            margin-bottom: 1.25rem;
+            background: var(--primary-color);
             color: white;
-            border: none;
-            border-radius: 5px;
+            font-size: 1.3rem;
+            transition: all var(--transition-speed);
         }
-        
-        button:hover {
-            background-color: #45a049;
+
+        .tool-card:hover .tool-icon {
+            transform: scale(1.05);
         }
-        
-        .d-none {
+
+        .tool-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+        }
+
+        .tool-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+            flex-grow: 1;
+        }
+
+        .tool-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .tool-tag {
+            font-size: 0.75rem;
+            background: rgba(0, 113, 227, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .tool-link {
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .tool-link:hover {
+            gap: 0.5rem;
+        }
+
+        .coming-soon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: #a1a1a6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        footer {
+            background-color: var(--footer-bg);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .footer-logo {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            max-width: 400px;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            border-radius: 50%;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .social-link:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] .copyright {
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* 主题切换开关样式 */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 26px;
+            position: relative;
+            width: 50px;
+        }
+
+        .theme-switch input {
             display: none;
         }
-        
-        .game-message {
+
+        .slider {
+            background-color: rgba(255, 255, 255, 0.3); /* 滑块背景改为半透明白色 */
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
             position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1000;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
         }
-        
-        /* 强制横屏样式 */
-        @media (orientation: portrait) {
-            .game-container {
-                transform: rotate(90deg);
-                transform-origin: center center;
-                width: 100vh;
-                height: 100vw;
-                position: absolute;
-                top: 0;
-                left: 0;
+
+        .slider:before {
+            background-color: white;
+            bottom: 3px;
+            content: "";
+            height: 20px;
+            left: 3px;
+            position: absolute;
+            transition: .4s;
+            width: 20px;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #424245;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .theme-icon {
+            font-size: 1rem;
+            color: white; /* 主题图标改为白色 */
+        }
+
+        .tools-grid {
+            padding-top: 1.5rem;
+            padding-bottom: 3rem;
+        }
+
+        /* 苹果风格标签页 */
+        .apple-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            overflow-x: auto;
+            padding: 0 1rem;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .apple-tab {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .apple-tab.active {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .apple-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+            border-radius: 1px;
+        }
+
+        .apple-tab:hover:not(.active) {
+            color: var(--text-color);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            color: var(--text-color);
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        /* 移动端适配样式 */
+        @media (max-width: 767px) {
+            .navbar {
+                padding: 0.5rem 0;
             }
             
-            canvas {
-                width: 100vh;
-                height: 100vw;
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .theme-switch-wrapper {
+                gap: 0.5rem;
+            }
+            
+            .theme-switch {
+                width: 40px;
+                height: 22px;
+            }
+            
+            .slider:before {
+                width: 16px;
+                height: 16px;
+            }
+            
+            input:checked + .slider:before {
+                transform: translateX(18px);
+            }
+            
+            .themes-container {
+                padding: 1rem 0 0;
+            }
+            
+            .apple-tabs {
+                justify-content: flex-start;
+                padding-bottom: 0.5rem;
+                margin-bottom: 1.5rem;
+                gap: 1rem;
+            }
+            
+            .apple-tab {
+                font-size: 0.85rem;
+                padding: 0.4rem 0;
+            }
+            
+            .tool-card {
+                padding: 1.25rem;
+            }
+            
+            .tool-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .tool-title {
+                font-size: 1.1rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .tool-description {
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+            }
+            
+            .tool-tag {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.6rem;
+            }
+            
+            .tool-link {
+                font-size: 0.85rem;
+            }
+            
+            .coming-soon, .popular-badge {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.6rem;
+                top: 0.75rem;
+                right: 0.75rem;
+            }
+            
+            footer {
+                padding: 2rem 0 1.5rem;
+                margin-top: 2rem;
+            }
+            
+            .footer-logo {
+                font-size: 1.1rem;
+            }
+            
+            .footer-text {
+                font-size: 0.85rem;
+            }
+            
+            .footer-links-title {
+                font-size: 0.9rem;
+            }
+            
+            .footer-link {
+                font-size: 0.85rem;
+            }
+            
+            .copyright {
+                font-size: 0.8rem;
+                margin-top: 2rem;
+                padding-top: 1rem;
             }
         }
-        
-        /* 移动设备适配 */
-        @media (max-width: 768px) {
-            .controls-hint {
-                font-size: 12px;
+
+        /* 超小屏幕适配 */
+        @media (max-width: 575px) {
+            .col-md-4.col-lg-3 {
+                width: 50%; /* 在超小屏幕上每行显示2个卡片 */
             }
             
-            #game-status {
-                padding: 5px 10px;
+            .row.g-4 {
+                row-gap: 1rem !important;
             }
             
-            .game-title {
-                font-size: 24px;
+            .tool-card {
+                padding: 1rem;
+            }
+            
+            .tool-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .tool-title {
+                font-size: 1rem;
+                margin-bottom: 0.4rem;
+            }
+            
+            .tool-description {
+                font-size: 0.8rem;
+                margin-bottom: 0.75rem;
+                line-height: 1.4;
+            }
+            
+            .tool-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <!-- 游戏画布 -->
-        <canvas id="gameCanvas" width="1200" height="600"></canvas>
-
-        <!-- 游戏菜单 -->
-        <div id="menu" class="d-none">
-            <h1 class="game-title">台球大师</h1>
-            <div class="d-grid gap-3">
-                <button id="startButton" class="game-btn">
-                    <i class="fas fa-play me-2"></i>开始游戏
-                </button>
-                <button id="quitButton" class="game-btn">
-                    <i class="fas fa-times me-2"></i>退出游戏
-                </button>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-tools"></i> 工具集
+            </a>
+            <div class="theme-switch-wrapper">
+                <i class="bi bi-moon theme-icon"></i>
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider"></div>
+                </label>
+                <i class="bi bi-sun theme-icon"></i>
             </div>
         </div>
+    </nav>
 
-        <!-- 游戏状态栏 -->
-        <div id="game-status" class="d-none">
-            <div class="status-item">
-                <i class="fas fa-star"></i>
-                <span id="scoreText">得分: 0</span>
-            </div>
-            <div class="status-item">
-                <i class="fas fa-bullseye"></i>
-                <span id="shotsText">击球次数: 0</span>
-            </div>
+    <!-- 工具展示区域 -->
+    <div class="container themes-container">
+        <!-- 苹果风格标签页 -->
+        <div class="apple-tabs" id="category-tabs">
+            <button class="apple-tab active" data-category="all">全部工具</button>
+            <button class="apple-tab" data-category="code">开发编程</button>
+            <button class="apple-tab" data-category="design">设计创意</button>
+            <button class="apple-tab" data-category="convert">格式转换</button>
+            <button class="apple-tab" data-category="format">文本处理</button>
+            <button class="apple-tab" data-category="other">其他工具</button>
         </div>
+    </div>
 
-        <!-- 力度条 -->
-        <div id="power-bar" class="d-none">
-            <div id="power-fill"></div>
-        </div>
+    <!-- 工具卡片网格 -->
+    <div class="container tools-grid">
+        <div class="row g-4" id="tools-grid">
+            <!-- Markdown编辑器 -->
+            <div class="col-md-4 col-lg-3" data-category="code format">
+                <a href="markdown.html" class="text-decoration-none">
+                    <div class="tool-card">
+                        <div class="tool-icon">
+                            <i class="bi bi-markdown"></i>
+                        </div>
+                        <h3 class="tool-title">Markdown编辑器</h3>
+                        <p class="tool-description">
+                            Markdown编辑器
+                        </p>
+                        <div class="tool-meta">
+                            <span class="tool-tag">开发者必备</span>
+                            <span class="tool-link">立即使用 <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                        <span class="popular-badge">热门</span>
+                    </div>
+                </a>
+            </div>
 
-        <!-- 操作提示 -->
-        <div class="controls-hint position-fixed bottom-0 start-0 m-3 text-white">
-            <div class="d-flex flex-column gap-2">
-                <div class="desktop-control"><i class="fas fa-mouse me-2"></i>鼠标移动: 瞄准</div>
-                <div class="desktop-control"><i class="fas fa-keyboard me-2"></i>空格键: 蓄力/击球</div>
-                <div class="mobile-control d-none"><i class="fas fa-hand-pointer me-2"></i>滑动: 瞄准</div>
-                <div class="mobile-control d-none"><i class="fas fa-hand-paper me-2"></i>长按: 蓄力/击球</div>
-                <div><i class="fas fa-undo me-2"></i>ESC/返回: 菜单</div>
+            <!-- JSON格式化工具 -->
+            <div class="col-md-4 col-lg-3" data-category="code format">
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="bi bi-braces"></i>
+                    </div>
+                    <h3 class="tool-title">JSON格式化工具</h3>
+                    <p class="tool-description">
+                        JSON数据格式化
+                    </p>
+                    <div class="tool-meta">
+                        <span class="tool-tag">数据处理</span>
+                        <span class="tool-link">即将上线 <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                    <span class="coming-soon">即将推出</span>
+                </div>
+            </div>
+
+            <!-- 随手画板 -->
+            <div class="col-md-4 col-lg-3" data-category="design">
+                <a href="canvas.html" class="text-decoration-none">
+                    <div class="tool-card">
+                        <div class="tool-icon">
+                            <i class="bi bi-brush"></i>
+                        </div>
+                        <h3 class="tool-title">随手画板</h3>
+                        <p class="tool-description">
+                            在线绘图工具
+                        </p>
+                        <div class="tool-meta">
+                            <span class="tool-tag">创意设计</span>
+                            <span class="tool-link">立即使用 <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 图片处理工具 -->
+            <div class="col-md-4 col-lg-3" data-category="design convert">
+                <a href="image.html" class="text-decoration-none">
+                    <div class="tool-card">
+                        <div class="tool-icon">
+                            <i class="bi bi-image"></i>
+                        </div>
+                        <h3 class="tool-title">图片处理工具</h3>
+                        <p class="tool-description">
+                            在线图片处理工具
+                        </p>
+                        <div class="tool-meta">
+                            <span class="tool-tag">设计</span>
+                            <span class="tool-link">立即使用 <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 正则表达式测试 -->
+            <div class="col-md-4 col-lg-3" data-category="code">
+                <div class="tool-card">
+                    <div class="tool-icon">
+                        <i class="bi bi-code-slash"></i>
+                    </div>
+                    <h3 class="tool-title">正则表达式测试</h3>
+                    <p class="tool-description">
+                        正则表达式在线测试
+                    </p>
+                    <div class="tool-meta">
+                        <span class="tool-tag">开发工具</span>
+                        <span class="tool-link">立即使用 <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间戳转换 -->
+            <div class="col-md-4 col-lg-3" data-category="convert">
+                <a href="timestamp.html" class="text-decoration-none">
+                    <div class="tool-card">
+                        <div class="tool-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <h3 class="tool-title">时间戳转换</h3>
+                        <p class="tool-description">
+                            日期时间双向转换工具
+                        </p>
+                        <div class="tool-meta">
+                            <span class="tool-tag">日期处理</span>
+                            <span class="tool-link">立即使用 <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Diff工具 -->
+            <div class="col-md-4 col-lg-3" data-category="code">
+                <a href="diff.html" class="text-decoration-none">
+                    <div class="tool-card">
+                        <div class="tool-icon">
+                            <i class="bi bi-file-diff"></i>
+                        </div>
+                        <h3 class="tool-title">文本对比工具</h3>
+                        <p class="tool-description">
+                            diff对比工具
+                        </p>
+                        <div class="tool-meta">
+                            <span class="tool-tag">文本处理</span>
+                            <span class="tool-link">立即使用 <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- PDF转Word工具 -->
+            <div class="col-md-4 col-lg-3" data-category="convert">
+                <a href="pdf2word.html" class="text-decoration-none">
+                    <div class="tool-card">
+                        <div class="tool-icon">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </div>
+                        <h3 class="tool-title">PDF转Word工具</h3>
+                        <p class="tool-description">
+                            PDF转Word
+                        </p>
+                        <div class="tool-meta">
+                            <span class="tool-tag">文档转换</span>
+                            <span class="tool-link">立即使用 <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                        <span class="popular-badge">热门</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- 强化学习 -->
+            <div class="col-md-4 col-lg-3" data-category="other">
+                <a href="reinforcement_learning.html" class="text-decoration-none">
+                    <div class="tool-card">
+                        <div class="tool-icon">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <h3 class="tool-title">强化学习示例</h3>
+                        <p class="tool-description">
+                            强化学习示例
+                        </p>
+                        <div class="tool-meta">
+                            <span class="tool-tag">AI演示</span>
+                            <span class="tool-link">立即体验 <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- 游戏脚本 -->
-    <script src="js/constants.js"></script>
-    <script src="js/ball.js"></script>
-    <script src="js/table.js"></script>
-    <script src="js/spin.js"></script>
-    <script src="js/game.js"></script>
+    <!-- 简化版页脚 -->
+    <footer>
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-lg-6">
+                    <a href="#" class="footer-logo">
+                        <i class="bi bi-tools"></i> 工具集
+                    </a>
+                    <p class="footer-text">
+                        高效、易用的在线工具，帮助您提升工作效率，解决日常开发和设计中的各种问题。
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="bi bi-github"></i></a>
+                        <a href="#" class="social-link"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" class="social-link"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="social-link"><i class="bi bi-envelope"></i></a>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <h5 class="footer-links-title">快速访问</h5>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">热门工具</a></li>
+                        <li><a href="#" class="footer-link">最新工具</a></li>
+                        <li><a href="#" class="footer-link">使用指南</a></li>
+                        <li><a href="#" class="footer-link">常见问题</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <h5 class="footer-links-title">关于我们</h5>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">联系我们</a></li>
+                        <li><a href="#" class="footer-link">法律信息</a></li>
+                        <li><a href="#" class="footer-link">隐私政策</a></li>
+                        <li><a href="#" class="footer-link">用户协议</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                Copyright © 2023 工具集平台. 保留所有权利.
+            </div>
+        </div>
+    </footer>
 
-    <!-- Bootstrap Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeSwitch = document.getElementById('checkbox');
+            const toolsGrid = document.getElementById('tools-grid');
+            const toolCards = toolsGrid.querySelectorAll('.col-md-4');
+            const categoryButtons = document.querySelectorAll('.apple-tab');
+            
+            // 切换暗色/亮色模式
+            function toggleTheme() {
+                if (themeSwitch.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
+            }
+
+            // 检查本地存储中的主题设置
+            function checkTheme() {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    themeSwitch.checked = true;
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    themeSwitch.checked = false;
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            }
+
+            // 筛选分类
+            function filterCategory(category) {
+                toolCards.forEach(card => {
+                    const cardCategories = card.dataset.category.split(' ');
+                    if (category === 'all' || cardCategories.includes(category)) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            // 事件监听
+            themeSwitch.addEventListener('change', toggleTheme);
+            
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 清除之前的激活状态
+                    categoryButtons.forEach(b => b.classList.remove('active'));
+                    // 添加当前按钮的激活状态
+                    this.classList.add('active');
+                    // 筛选分类
+                    filterCategory(this.dataset.category);
+                });
+            });
+
+            // 初始化主题
+            checkTheme();
+        });
+    </script>
 </body>
-</html>
+</html> 

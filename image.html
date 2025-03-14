@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专业图片处理工具 - ImageMaster</title>
+    <!-- 引入现代UI框架 -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- 引入图标库 -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- 自定义样式 -->
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #64748b;
+            --accent: #06b6d4;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --text: #1e293b;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #60a5fa;
+            --secondary: #94a3b8;
+            --accent: #22d3ee;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+            gap: 1px;
+            background-color: var(--border);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar {
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            background-color: var(--background);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel {
+            background-color: var(--surface);
+            border-left: 1px solid var(--border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tool-button {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0;
+        }
+
+        .tool-button:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .tool-button i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .image-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .image-drop-zone:hover {
+            border-color: var(--primary);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .theme-switch {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .theme-switch:hover {
+            background-color: var(--surface);
+        }
+
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* 图片编辑区样式 */
+        .image-editor {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .image-editor.active {
+            display: flex;
+        }
+
+        .editor-toolbar {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            background-color: var(--surface);
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 
+                       50% / 20px 20px;
+        }
+
+        #mainCanvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+            background-color: var(--background);
+        }
+
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .history-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .history-thumbnail {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.25rem;
+            margin-right: 0.75rem;
+            object-fit: cover;
+        }
+
+        .panel > div {
+            flex-shrink: 0;
+        }
+
+        .panel .space-y-2 {
+            max-height: 130px;
+            overflow-y: auto;
+            padding: 8px;
+            margin: -8px;
+            margin-bottom: 0;
+        }
+
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 参数控制面板样式 */
+        .control-group {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--background);
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .range-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .range-control input[type="range"] {
+            flex: 1;
+        }
+
+        .range-control input[type="number"] {
+            width: 4rem;
+            padding: 0.25rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            background-color: var(--background);
+        }
+
+        /* 加载动画 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--surface);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 滤镜项样式 */
+        .filter-item {
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .filter-item:hover {
+            border-color: var(--primary);
+        }
+        
+        .filter-item.active {
+            border-color: var(--primary);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .filter-preview {
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 -->
+        <header class="header flex items-center justify-between px-4">
+            <div class="flex items-center">
+                <a href="index.html" class="flex items-center text-xl font-bold text-primary mr-8">
+                    <i class="mdi mdi-image-edit mr-2"></i>
+                    ImageMaster
+                </a>
+                <nav class="flex space-x-4">
+                    <a href="#" class="px-3 py-2 rounded-md hover:bg-surface">首页</a>
+                    <a href="#" class="px-3 py-2 rounded-md hover:bg-surface">教程</a>
+                    <a href="#" class="px-3 py-2 rounded-md hover:bg-surface">关于</a>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="theme-switch" id="themeSwitch">
+                    <i class="mdi mdi-weather-night text-xl"></i>
+                </button>
+                <button class="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                    <i class="mdi mdi-cloud-upload mr-2"></i>
+                    保存到云端
+                </button>
+            </div>
+        </header>
+
+        <!-- 左侧工具栏 -->
+        <aside class="sidebar p-4">
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-3">基础工具</h2>
+                <button class="tool-button">
+                    <i class="mdi mdi-crop"></i>
+                    裁剪
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-resize"></i>
+                    调整大小
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-rotate-right"></i>
+                    旋转
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-flip-horizontal"></i>
+                    翻转
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-3">图像增强</h2>
+                <button class="tool-button">
+                    <i class="mdi mdi-brightness-6"></i>
+                    亮度/对比度
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-palette"></i>
+                    色相/饱和度
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-blur"></i>
+                    模糊/锐化
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-3">特效滤镜</h2>
+                <button class="tool-button">
+                    <i class="mdi mdi-instagram"></i>
+                    滤镜库
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-brush"></i>
+                    艺术效果
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-gradient"></i>
+                    渐变叠加
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-3">AI 工具</h2>
+                <button class="tool-button">
+                    <i class="mdi mdi-face-recognition"></i>
+                    人像美化
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-content-cut"></i>
+                    智能抠图
+                </button>
+                <button class="tool-button">
+                    <i class="mdi mdi-image-size-select-actual"></i>
+                    超分辨率
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主要内容区 -->
+        <main class="main-content p-6">
+            <!-- 上传区域 -->
+            <div class="image-drop-zone h-full flex flex-col items-center justify-center">
+                <i class="mdi mdi-cloud-upload text-6xl text-secondary mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">拖放图片到这里</h3>
+                <p class="text-secondary mb-4">或者点击选择文件</p>
+                <button class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    选择图片
+                </button>
+                <input type="file" id="fileInput" class="hidden" accept="image/*">
+            </div>
+
+            <!-- 编辑区域 -->
+            <div class="image-editor">
+                <div class="editor-toolbar">
+                    <button class="px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white transition-colors" id="zoomInBtn">
+                        <i class="mdi mdi-magnify-plus"></i>
+                    </button>
+                    <button class="px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white transition-colors" id="zoomOutBtn">
+                        <i class="mdi mdi-magnify-minus"></i>
+                    </button>
+                    <button class="px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white transition-colors" id="fitScreenBtn">
+                        <i class="mdi mdi-fit-to-screen"></i>
+                    </button>
+                    <div class="flex-1"></div>
+                    <button class="px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white transition-colors" id="undoBtn">
+                        <i class="mdi mdi-undo"></i>
+                    </button>
+                    <button class="px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white transition-colors" id="redoBtn">
+                        <i class="mdi mdi-redo"></i>
+                    </button>
+                </div>
+                <div class="canvas-container">
+                    <!-- 使用普通img元素替代canvas -->
+                    <img id="previewImage" style="display: none; max-width: 100%; max-height: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" />
+                    <canvas id="mainCanvas" style="display: none;"></canvas>
+                </div>
+            </div>
+        </main>
+
+        <!-- 右侧参数面板 -->
+        <aside class="panel p-4">
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-3">图片信息</h2>
+                <div class="space-y-2 text-sm">
+                    <p>尺寸: -- x -- 像素</p>
+                    <p>大小: -- MB</p>
+                    <p>格式: --</p>
+                </div>
+            </div>
+
+            <!-- 工具参数控制面板 -->
+            <div id="toolPanel" class="mb-6 hidden">
+                <!-- 裁剪工具参数 -->
+                <div id="cropPanel" class="hidden">
+                    <h2 class="text-lg font-bold mb-3">裁剪设置</h2>
+                    <div class="control-group">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">宽度</label>
+                            <input type="number" id="cropWidth" class="w-full p-2 rounded border border-border bg-background" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">高度</label>
+                            <input type="number" id="cropHeight" class="w-full p-2 rounded border border-border bg-background" min="1">
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <button id="applyCrop" class="flex-1 px-3 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                                应用
+                            </button>
+                            <button id="cancelCrop" class="flex-1 px-3 py-2 bg-surface text-text rounded-md hover:bg-gray-200">
+                                取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 调整大小工具参数 -->
+                <div id="resizePanel" class="hidden">
+                    <h2 class="text-lg font-bold mb-3">调整大小</h2>
+                    <div class="control-group">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">宽度</label>
+                            <input type="number" id="resizeWidth" class="w-full p-2 rounded border border-border bg-background" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">高度</label>
+                            <input type="number" id="resizeHeight" class="w-full p-2 rounded border border-border bg-background" min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="maintainAspectRatio" class="mr-2" checked>
+                                <span class="text-sm">保持宽高比</span>
+                            </label>
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <button id="applyResize" class="flex-1 px-3 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                                应用
+                            </button>
+                            <button id="cancelResize" class="flex-1 px-3 py-2 bg-surface text-text rounded-md hover:bg-gray-200">
+                                取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 旋转工具参数 -->
+                <div id="rotatePanel" class="hidden">
+                    <h2 class="text-lg font-bold mb-3">旋转设置</h2>
+                    <div class="control-group">
+                        <div class="flex space-x-2 mb-3">
+                            <button id="rotate90" class="flex-1 px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white">
+                                <i class="mdi mdi-rotate-90"></i> 90°
+                            </button>
+                            <button id="rotate180" class="flex-1 px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white">
+                                <i class="mdi mdi-rotate-180"></i> 180°
+                            </button>
+                            <button id="rotate270" class="flex-1 px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white">
+                                <i class="mdi mdi-rotate-270"></i> 270°
+                            </button>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="flipH" class="flex-1 px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white">
+                                <i class="mdi mdi-flip-horizontal"></i> 水平翻转
+                            </button>
+                            <button id="flipV" class="flex-1 px-3 py-2 bg-surface rounded-md hover:bg-primary hover:text-white">
+                                <i class="mdi mdi-flip-vertical"></i> 垂直翻转
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 亮度/对比度工具参数 -->
+                <div id="brightnessPanel" class="hidden">
+                    <h2 class="text-lg font-bold mb-3">亮度/对比度</h2>
+                    <div class="control-group">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">亮度: <span id="brightnessValue">0</span></label>
+                            <input type="range" id="brightness" class="w-full" min="-100" max="100" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">对比度: <span id="contrastValue">0</span></label>
+                            <input type="range" id="contrast" class="w-full" min="-100" max="100" value="0">
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <button id="applyBrightness" class="flex-1 px-3 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                                应用
+                            </button>
+                            <button id="resetBrightness" class="flex-1 px-3 py-2 bg-surface text-text rounded-md hover:bg-gray-200">
+                                重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 色相/饱和度工具参数 -->
+                <div id="huePanel" class="hidden">
+                    <h2 class="text-lg font-bold mb-3">色相/饱和度</h2>
+                    <div class="control-group">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">色相: <span id="hueValue">0</span>°</label>
+                            <input type="range" id="hue" class="w-full" min="0" max="360" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">饱和度: <span id="saturationValue">100</span>%</label>
+                            <input type="range" id="saturation" class="w-full" min="0" max="200" value="100">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">明度: <span id="lightnessValue">100</span>%</label>
+                            <input type="range" id="lightness" class="w-full" min="0" max="200" value="100">
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <button id="applyHue" class="flex-1 px-3 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                                应用
+                            </button>
+                            <button id="resetHue" class="flex-1 px-3 py-2 bg-surface text-text rounded-md hover:bg-gray-200">
+                                重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 模糊/锐化工具参数 -->
+                <div id="blurPanel" class="hidden">
+                    <h2 class="text-lg font-bold mb-3">模糊/锐化</h2>
+                    <div class="control-group">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">模糊: <span id="blurValue">0</span>px</label>
+                            <input type="range" id="blur" class="w-full" min="0" max="20" value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1">锐化强度: <span id="sharpenValue">0</span></label>
+                            <input type="range" id="sharpen" class="w-full" min="0" max="10" value="0">
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <button id="applyBlur" class="flex-1 px-3 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                                应用
+                            </button>
+                            <button id="resetBlur" class="flex-1 px-3 py-2 bg-surface text-text rounded-md hover:bg-gray-200">
+                                重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 滤镜库面板 -->
+                <div id="filtersPanel" class="hidden">
+                    <h2 class="text-lg font-bold mb-3">滤镜库</h2>
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="normal">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center">
+                                <span class="text-xs">原图</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">原图</div>
+                        </div>
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="grayscale">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center filter-preview" style="filter: grayscale(1)">
+                                <span class="text-xs">预览</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">黑白</div>
+                        </div>
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="sepia">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center filter-preview" style="filter: sepia(0.8)">
+                                <span class="text-xs">预览</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">复古</div>
+                        </div>
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="warm">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center filter-preview" style="filter: sepia(0.3) saturate(1.5) hue-rotate(-15deg)">
+                                <span class="text-xs">预览</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">暖色调</div>
+                        </div>
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="cool">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center filter-preview" style="filter: saturate(1.2) hue-rotate(15deg) brightness(1.1)">
+                                <span class="text-xs">预览</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">冷色调</div>
+                        </div>
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="vintage">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center filter-preview" style="filter: contrast(1.1) brightness(1.1) saturate(1.3) sepia(0.3)">
+                                <span class="text-xs">预览</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">复古胶片</div>
+                        </div>
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="dramatic">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center filter-preview" style="filter: contrast(1.5) brightness(0.9) saturate(1.5)">
+                                <span class="text-xs">预览</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">戏剧效果</div>
+                        </div>
+                        <div class="filter-item cursor-pointer rounded-md overflow-hidden" data-filter="faded">
+                            <div class="h-20 bg-gray-100 flex items-center justify-center filter-preview" style="filter: contrast(0.9) brightness(1.1) saturate(0.8)">
+                                <span class="text-xs">预览</span>
+                            </div>
+                            <div class="text-center py-1 text-xs">褪色</div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 mt-4">
+                        <button id="applyFilter" class="flex-1 px-3 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                            应用滤镜
+                        </button>
+                        <button id="cancelFilter" class="flex-1 px-3 py-2 bg-surface text-text rounded-md hover:bg-gray-200">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-3">历史记录</h2>
+                <div class="space-y-2">
+                    <p class="text-secondary text-sm">暂无历史记录</p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-3">导出设置</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">格式</label>
+                        <select class="w-full p-2 rounded border border-border bg-background">
+                            <option value="JPEG">JPEG</option>
+                            <option value="PNG">PNG</option>
+                            <option value="WEBP">WEBP</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">质量</label>
+                        <input type="range" class="w-full" min="1" max="100" value="80">
+                    </div>
+                    <button class="w-full px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                        导出图片
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 引入图片处理库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+    <!-- 核心功能脚本 -->
+    <script>
+        // 主题切换
+        const themeSwitch = document.getElementById('themeSwitch');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        function setTheme(isDark) {
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            themeSwitch.innerHTML = `<i class="mdi mdi-weather-${isDark ? 'sunny' : 'night'} text-xl"></i>`;
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // 初始化主题
+        const savedTheme = localStorage.getItem('theme');
+        setTheme(savedTheme ? savedTheme === 'dark' : prefersDark.matches);
+
+        // 主题切换事件
+        themeSwitch.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            setTheme(!isDark);
+        });
+
+        // 系统主题变化监听
+        prefersDark.addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches);
+            }
+        });
+
+        // 全局变量
+        let canvas = null;
+        let ctx = null;
+        let originalImage = null;
+        let currentImage = null;
+        let zoomLevel = 1;
+        const history = [];
+        let historyIndex = -1;
+        const maxHistoryLength = 10;
+        let isProcessing = false; // 防止重复处理
+        let debounceTimer = null; // 用于防抖
+        let cropMode = false; // 裁剪模式标志
+        let cropStartX, cropStartY, cropEndX, cropEndY; // 裁剪区域坐标
+
+        // 文件拖放处理
+        const dropZone = document.querySelector('.image-drop-zone');
+        const fileInput = document.getElementById('fileInput');
+        const previewImage = document.getElementById('previewImage');
+        const mainCanvas = document.getElementById('mainCanvas');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--primary)';
+            dropZone.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = 'var(--border)';
+            dropZone.style.backgroundColor = 'transparent';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--border)';
+            dropZone.style.backgroundColor = 'transparent';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImage(file);
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImage(file);
+            }
+        });
+
+        // 防抖函数
+        function debounce(func, wait) {
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(debounceTimer);
+                    func(...args);
+                };
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(later, wait);
+            };
+        }
+
+        // 处理图片函数 - 使用简单的img元素显示
+        async function handleImage(file) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            try {
+                document.querySelector('.loading-overlay').classList.add('active');
+                console.log('开始处理图片');
+                
+                // 读取文件为DataURL
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = (e) => reject(new Error('读取文件失败'));
+                    reader.readAsDataURL(file);
+                });
+                
+                console.log('文件已读取为DataURL');
+                
+                // 加载图片
+                const img = await new Promise((resolve, reject) => {
+                    const image = new Image();
+                    image.onload = () => {
+                        console.log('图片已加载', image.width, image.height);
+                        resolve(image);
+                    };
+                    image.onerror = () => reject(new Error('加载图片失败'));
+                    image.src = dataUrl;
+                });
+                
+                // 保存原始图片
+                originalImage = img;
+                currentImage = img;
+                
+                // 显示编辑区域
+                document.querySelector('.image-drop-zone').style.display = 'none';
+                document.querySelector('.image-editor').classList.add('active');
+                
+                // 显示图片
+                previewImage.src = dataUrl;
+                previewImage.style.display = 'block';
+                
+                // 更新信息
+                updateImageInfo(file, img);
+                addToHistory('上传图片', dataUrl);
+                
+                console.log('图片处理完成');
+            } catch (error) {
+                console.error('处理图片时出错:', error);
+                alert('处理图片时出错: ' + error.message);
+            } finally {
+                document.querySelector('.loading-overlay').classList.remove('active');
+                isProcessing = false;
+            }
+        }
+
+        // 更新图片信息
+        function updateImageInfo(file, img) {
+            const size = formatFileSize(file.size);
+            requestAnimationFrame(() => {
+                document.querySelector('.panel .space-y-2').innerHTML = `
+                    <p>尺寸: ${img.width} × ${img.height} 像素</p>
+                    <p>大小: ${size}</p>
+                `;
+            });
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 添加历史记录
+        function addToHistory(action, imageUrl) {
+            if (isProcessing) return;
+            
+            const historyContainer = document.querySelector('.panel .space-y-2');
+            const historyItems = historyContainer.querySelectorAll('.history-item');
+            
+            // 如果是第一次上传图片，清空历史记录
+            if (action === '上传图片') {
+                while (historyItems.length > 0) {
+                    historyItems[0].remove();
+                }
+            }
+
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <img src="${imageUrl}" class="history-thumbnail" alt="历史记录缩略图">
+                <span>${action}</span>
+            `;
+            
+            historyItem.addEventListener('click', () => {
+                // 更新预览图片
+                previewImage.src = imageUrl;
+                previewImage.style.filter = 'none';
+                
+                // 更新当前图片
+                const tempImage = new Image();
+                tempImage.onload = () => {
+                    originalImage = tempImage;
+                };
+                tempImage.src = imageUrl;
+                
+                // 更新选中状态
+                document.querySelectorAll('.history-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                historyItem.classList.add('active');
+            });
+            
+            // 将新的历史记录插入到最前面
+            if (historyContainer.firstChild) {
+                historyContainer.insertBefore(historyItem, historyContainer.firstChild);
+            } else {
+                historyContainer.appendChild(historyItem);
+            }
+        }
+
+        // 更新历史记录面板
+        const updateHistoryPanel = debounce(() => {
+            const historyContainer = document.querySelector('.panel .space-y-2');
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<p class="text-secondary text-sm">暂无历史记录</p>';
+                return;
+            }
+
+            requestAnimationFrame(() => {
+                historyContainer.innerHTML = history.map((item, index) => `
+                    <div class="history-item ${index === historyIndex ? 'active' : ''}" 
+                         onclick="restoreHistory(${index})">
+                        <img src="${item.state}" class="history-thumbnail">
+                        <div>
+                            <div class="font-medium">${item.action}</div>
+                            <div class="text-sm text-secondary">${item.timestamp}</div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // 更新历史导航按钮状态
+                const undoBtn = document.getElementById('undoBtn');
+                const redoBtn = document.getElementById('redoBtn');
+                
+                undoBtn.disabled = historyIndex <= 0;
+                redoBtn.disabled = historyIndex >= history.length - 1;
+            });
+        }, 300);
+
+        // 恢复历史记录
+        async function restoreHistory(index) {
+            if (isProcessing || index < 0 || index >= history.length) return;
+            isProcessing = true;
+
+            try {
+                document.querySelector('.loading-overlay').classList.add('active');
+                historyIndex = index;
+                
+                // 直接显示历史图片
+                previewImage.src = history[index].state;
+                
+                updateHistoryPanel();
+            } catch (error) {
+                console.error('恢复历史记录时出错:', error);
+                alert('恢复历史记录失败: ' + error.message);
+            } finally {
+                document.querySelector('.loading-overlay').classList.remove('active');
+                isProcessing = false;
+            }
+        }
+
+        // 缩放控制
+        const zoomCanvas = debounce((direction) => {
+            if (!previewImage.src) return;
+            
+            const factor = direction === 'in' ? 1.2 : 0.8;
+            zoomLevel *= factor;
+            
+            previewImage.style.transform = `translate(-50%, -50%) scale(${zoomLevel})`;
+            
+            console.log('缩放图片', {
+                direction,
+                newZoomLevel: zoomLevel
+            });
+        }, 100);
+
+        // 更新缩放按钮事件监听器
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            zoomCanvas('in');
+        });
+
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            zoomCanvas('out');
+        });
+
+        // 适应屏幕按钮
+        document.getElementById('fitScreenBtn').addEventListener('click', () => {
+            if (!previewImage.src) return;
+            zoomLevel = 1;
+            previewImage.style.transform = 'translate(-50%, -50%) scale(1)';
+            console.log('重置图片到适合屏幕大小');
+        });
+
+        // 撤销/重做
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            if (!isProcessing && historyIndex > 0) {
+                restoreHistory(historyIndex - 1);
+            }
+        });
+
+        document.getElementById('redoBtn').addEventListener('click', () => {
+            if (!isProcessing && historyIndex < history.length - 1) {
+                restoreHistory(historyIndex + 1);
+            }
+        });
+
+        // 更新历史导航按钮状态
+        function updateHistoryButtons() {
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            
+            undoBtn.disabled = historyIndex <= 0;
+            redoBtn.disabled = historyIndex >= history.length - 1;
+        }
+
+        // 导出图片
+        document.querySelector('.panel button:last-child').addEventListener('click', async () => {
+            if (isProcessing || !previewImage.src) return;
+            isProcessing = true;
+
+            try {
+                document.querySelector('.loading-overlay').classList.add('active');
+                
+                const format = document.querySelector('.panel select').value.toLowerCase();
+                const quality = document.querySelector('.panel input[type="range"]').value / 100;
+                
+                // 创建临时canvas来导出图片
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = originalImage.width;
+                tempCanvas.height = originalImage.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(originalImage, 0, 0);
+                
+                const dataUrl = tempCanvas.toDataURL(`image/${format}`, quality);
+                
+                const link = document.createElement('a');
+                link.download = `edited_image.${format}`;
+                link.href = dataUrl;
+                link.click();
+            } finally {
+                document.querySelector('.loading-overlay').classList.remove('active');
+                isProcessing = false;
+            }
+        });
+
+        // 窗口大小改变时重新调整
+        window.addEventListener('resize', debounce(() => {
+            // 不需要特殊处理，因为使用了CSS的max-width和max-height
+        }, 300));
+
+        // 滤镜库功能
+        let currentFilter = 'normal';
+        const filterStyles = {
+            normal: 'none',
+            grayscale: 'grayscale(1)',
+            sepia: 'sepia(0.8)',
+            warm: 'sepia(0.3) saturate(1.5) hue-rotate(-15deg)',
+            cool: 'saturate(1.2) hue-rotate(15deg) brightness(1.1)',
+            vintage: 'contrast(1.1) brightness(1.1) saturate(1.3) sepia(0.3)',
+            dramatic: 'contrast(1.5) brightness(0.9) saturate(1.5)',
+            faded: 'contrast(0.9) brightness(1.1) saturate(0.8)'
+        };
+        
+        // 工具按钮事件处理 - 更新以支持滤镜库
+        document.querySelectorAll('.tool-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const toolType = this.querySelector('i').className;
+                
+                // 隐藏所有工具面板
+                document.querySelectorAll('#toolPanel > div').forEach(panel => {
+                    panel.classList.add('hidden');
+                });
+                
+                // 显示工具面板
+                document.getElementById('toolPanel').classList.remove('hidden');
+                
+                // 根据工具类型显示对应面板
+                if (toolType.includes('crop')) {
+                    document.getElementById('cropPanel').classList.remove('hidden');
+                    startCropMode();
+                } else if (toolType.includes('resize')) {
+                    document.getElementById('resizePanel').classList.remove('hidden');
+                    startResizeMode();
+                } else if (toolType.includes('rotate') || toolType.includes('flip')) {
+                    document.getElementById('rotatePanel').classList.remove('hidden');
+                } else if (toolType.includes('brightness')) {
+                    document.getElementById('brightnessPanel').classList.remove('hidden');
+                    resetBrightnessContrast();
+                } else if (toolType.includes('palette')) {
+                    document.getElementById('huePanel').classList.remove('hidden');
+                    resetHueSaturation();
+                } else if (toolType.includes('blur')) {
+                    document.getElementById('blurPanel').classList.remove('hidden');
+                    resetBlurSharpen();
+                } else if (toolType.includes('instagram')) {
+                    document.getElementById('filtersPanel').classList.remove('hidden');
+                    initFilters();
+                }
+            });
+        });
+        
+        // 初始化滤镜预览
+        function initFilters() {
+            if (!previewImage.src) return;
+            
+            // 重置当前滤镜
+            currentFilter = 'normal';
+            previewImage.style.filter = 'none';
+            
+            // 更新滤镜预览图
+            const filterPreviews = document.querySelectorAll('.filter-preview');
+            filterPreviews.forEach(preview => {
+                preview.style.backgroundImage = `url(${previewImage.src})`;
+            });
+            
+            // 标记当前选中的滤镜
+            document.querySelectorAll('.filter-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.filter === 'normal') {
+                    item.classList.add('active');
+                }
+                
+                // 添加点击事件
+                item.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    
+                    // 更新选中状态
+                    document.querySelectorAll('.filter-item').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // 应用滤镜预览
+                    currentFilter = filter;
+                    previewImage.style.filter = filterStyles[filter];
+                });
+            });
+        }
+        
+        // 应用滤镜
+        document.getElementById('applyFilter').addEventListener('click', () => {
+            if (!previewImage.src || currentFilter === 'normal') {
+                // 如果是原图，直接关闭面板
+                document.getElementById('filtersPanel').classList.add('hidden');
+                document.getElementById('toolPanel').classList.add('hidden');
+                return;
+            }
+            
+            // 创建临时canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = originalImage.width;
+            tempCanvas.height = originalImage.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 绘制原始图片
+            tempCtx.drawImage(originalImage, 0, 0);
+            
+            // 获取图片数据
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imageData.data;
+            
+            // 根据滤镜类型应用不同的处理
+            switch (currentFilter) {
+                case 'grayscale':
+                    // 灰度处理
+                    for (let i = 0; i < data.length; i += 4) {
+                        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                        data[i] = data[i + 1] = data[i + 2] = avg;
+                    }
+                    break;
+                    
+                case 'sepia':
+                    // 棕褐色处理
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        
+                        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                    }
+                    break;
+                    
+                case 'warm':
+                    // 暖色调
+                    for (let i = 0; i < data.length; i += 4) {
+                        // 增加红色和黄色
+                        data[i] = Math.min(255, data[i] * 1.1);
+                        data[i + 1] = Math.min(255, data[i + 1] * 1.05);
+                        data[i + 2] = Math.max(0, data[i + 2] * 0.9);
+                    }
+                    break;
+                    
+                case 'cool':
+                    // 冷色调
+                    for (let i = 0; i < data.length; i += 4) {
+                        // 增加蓝色
+                        data[i] = Math.max(0, data[i] * 0.9);
+                        data[i + 1] = Math.min(255, data[i + 1] * 1.05);
+                        data[i + 2] = Math.min(255, data[i + 2] * 1.1);
+                    }
+                    break;
+                    
+                case 'vintage':
+                    // 复古胶片
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        
+                        // 增加对比度和饱和度，添加轻微棕褐色效果
+                        data[i] = Math.min(255, (r * 1.1) + 10);
+                        data[i + 1] = Math.min(255, (g * 1.05) + 5);
+                        data[i + 2] = Math.min(255, b * 0.95);
+                    }
+                    break;
+                    
+                case 'dramatic':
+                    // 戏剧效果
+                    for (let i = 0; i < data.length; i += 4) {
+                        // 增加对比度
+                        data[i] = Math.min(255, Math.max(0, (data[i] - 128) * 1.5 + 128));
+                        data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * 1.5 + 128));
+                        data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * 1.5 + 128));
+                    }
+                    break;
+                    
+                case 'faded':
+                    // 褪色效果
+                    for (let i = 0; i < data.length; i += 4) {
+                        // 降低对比度，增加亮度
+                        data[i] = Math.min(255, (data[i] * 0.9) + 25);
+                        data[i + 1] = Math.min(255, (data[i + 1] * 0.9) + 25);
+                        data[i + 2] = Math.min(255, (data[i + 2] * 0.9) + 25);
+                    }
+                    break;
+            }
+            
+            // 更新图片
+            tempCtx.putImageData(imageData, 0, 0);
+            
+            // 创建新图片
+            const newImage = new Image();
+            newImage.onload = () => {
+                // 更新当前图片
+                originalImage = newImage;
+                
+                // 更新预览
+                previewImage.src = newImage.src;
+                previewImage.style.filter = 'none';
+                
+                // 添加到历史记录
+                addToHistory(`应用滤镜: ${getFilterName(currentFilter)}`, newImage.src);
+                
+                // 隐藏面板
+                document.getElementById('filtersPanel').classList.add('hidden');
+                document.getElementById('toolPanel').classList.add('hidden');
+            };
+            newImage.src = tempCanvas.toDataURL();
+        });
+        
+        // 取消滤镜
+        document.getElementById('cancelFilter').addEventListener('click', () => {
+            previewImage.style.filter = 'none';
+            document.getElementById('filtersPanel').classList.add('hidden');
+            document.getElementById('toolPanel').classList.add('hidden');
+        });
+        
+        // 获取滤镜名称
+        function getFilterName(filter) {
+            const filterNames = {
+                normal: '原图',
+                grayscale: '黑白',
+                sepia: '复古',
+                warm: '暖色调',
+                cool: '冷色调',
+                vintage: '复古胶片',
+                dramatic: '戏剧效果',
+                faded: '褪色'
+            };
+            
+            return filterNames[filter] || filter;
+        }
+
+        // 裁剪功能实现
+        function startCropMode() {
+    if (!previewImage.src) return;
+    
+    // 获取图片尺寸
+    const imgWidth = originalImage.width;
+    const imgHeight = originalImage.height;
+    
+    // 设置裁剪输入框的初始值
+    document.getElementById('cropWidth').value = imgWidth;
+    document.getElementById('cropHeight').value = imgHeight;
+    
+    // 显示裁剪模式
+    cropMode = true;
+    
+    const container = document.querySelector('.canvas-container');
+    const containerRect = container.getBoundingClientRect();
+    const imgRect = previewImage.getBoundingClientRect();
+    
+    let startX, startY;
+    let cropArea = null;
+    
+    // 监听鼠标按下事件来创建裁剪区域
+    container.addEventListener('mousedown', function(e) {
+        if (!cropMode) return;
+        
+        // 确保点击在图片区域内
+        if (e.clientX < imgRect.left || e.clientX > imgRect.right ||
+            e.clientY < imgRect.top || e.clientY > imgRect.bottom) {
+            return;
+        }
+        
+        e.preventDefault();
+        
+        // 记录起始位置
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        // 创建裁剪区域
+        cropArea = document.createElement('div');
+        cropArea.id = 'cropArea';
+        cropArea.style.position = 'absolute';
+        cropArea.style.border = '2px solid white';
+        cropArea.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        cropArea.style.left = (e.clientX - containerRect.left) + 'px';
+        cropArea.style.top = (e.clientY - containerRect.top) + 'px';
+        cropArea.style.width = '0';
+        cropArea.style.height = '0';
+        
+        container.appendChild(cropArea);
+    });
+    
+    // 监听鼠标移动事件来调整裁剪区域大小
+    container.addEventListener('mousemove', function(e) {
+        if (!cropMode || !cropArea) return;
+        
+        const width = e.clientX - startX;
+        const height = e.clientY - startY;
+        
+        // 根据拖动方向设置位置和大小
+        if (width < 0) {
+            cropArea.style.left = (e.clientX - containerRect.left) + 'px';
+            cropArea.style.width = Math.abs(width) + 'px';
+        } else {
+            cropArea.style.width = width + 'px';
+        }
+        
+        if (height < 0) {
+            cropArea.style.top = (e.clientY - containerRect.top) + 'px';
+            cropArea.style.height = Math.abs(height) + 'px';
+        } else {
+            cropArea.style.height = height + 'px';
+        }
+        
+        // 更新输入框的值
+        const scale = imgWidth / imgRect.width;
+        document.getElementById('cropWidth').value = Math.round(parseInt(cropArea.style.width) * scale);
+        document.getElementById('cropHeight').value = Math.round(parseInt(cropArea.style.height) * scale);
+    });
+    
+    // 监听鼠标松开事件
+    container.addEventListener('mouseup', function() {
+        if (!cropMode || !cropArea) return;
+        
+        // 如果裁剪区域太小，则移除它
+        if (parseInt(cropArea.style.width) < 10 || parseInt(cropArea.style.height) < 10) {
+            cropArea.remove();
+            return;
+        }
+        
+        // 添加调整手柄
+        const handles = ['nw', 'ne', 'sw', 'se'];
+        handles.forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = `resize-handle ${pos}`;
+            handle.style.position = 'absolute';
+            handle.style.width = '10px';
+            handle.style.height = '10px';
+            handle.style.backgroundColor = 'white';
+            handle.style.cursor = `${pos}-resize`;
+            
+            switch(pos) {
+                case 'nw': 
+                    handle.style.top = '-5px';
+                    handle.style.left = '-5px';
+                    break;
+                case 'ne':
+                    handle.style.top = '-5px';
+                    handle.style.right = '-5px';
+                    break;
+                case 'sw':
+                    handle.style.bottom = '-5px';
+                    handle.style.left = '-5px';
+                    break;
+                case 'se':
+                    handle.style.bottom = '-5px';
+                    handle.style.right = '-5px';
+                    break;
+            }
+            
+            cropArea.appendChild(handle);
+        });
+        
+        // 添加拖动功能
+        let isDragging = false;
+        let dragStartX, dragStartY;
+        let dragStartLeft, dragStartTop;
+        
+        cropArea.addEventListener('mousedown', function(e) {
+            if (e.target !== cropArea) return;
+            
+            e.preventDefault();
+            isDragging = true;
+            
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            dragStartLeft = parseInt(cropArea.style.left);
+            dragStartTop = parseInt(cropArea.style.top);
+        });
+        
+        container.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            
+            cropArea.style.left = (dragStartLeft + dx) + 'px';
+            cropArea.style.top = (dragStartTop + dy) + 'px';
+        });
+        
+        container.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+    });
+}
+        
+        // 应用裁剪
+        document.getElementById('applyCrop').addEventListener('click', () => {
+            if (!cropMode || !previewImage.src) return;
+            
+            const cropArea = document.getElementById('cropArea');
+            if (!cropArea) return;
+            
+            // 获取裁剪区域相对于图片的位置和大小
+            const imgRect = previewImage.getBoundingClientRect();
+            const cropRect = cropArea.getBoundingClientRect();
+            const containerRect = document.querySelector('.canvas-container').getBoundingClientRect();
+            
+            // 计算裁剪区域在原始图片上的位置和大小
+            const scale = originalImage.width / imgRect.width;
+            
+            const cropX = (cropRect.left - imgRect.left) * scale;
+            const cropY = (cropRect.top - imgRect.top) * scale;
+            const cropWidth = cropRect.width * scale;
+            const cropHeight = cropRect.height * scale;
+            
+            // 创建临时canvas进行裁剪
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = cropWidth;
+            tempCanvas.height = cropHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 绘制裁剪后的图片
+            tempCtx.drawImage(
+                originalImage,
+                cropX, cropY, cropWidth, cropHeight,
+                0, 0, cropWidth, cropHeight
+            );
+            
+            // 创建新图片
+            const newImage = new Image();
+            newImage.onload = () => {
+                // 更新当前图片
+                originalImage = newImage;
+                
+                // 更新预览
+                previewImage.src = newImage.src;
+                
+                // 添加到历史记录
+                addToHistory('裁剪图片', newImage.src);
+                
+                // 清理裁剪模式
+                endCropMode();
+                
+                // 隐藏面板
+                document.getElementById('cropPanel').classList.add('hidden');
+                document.getElementById('toolPanel').classList.add('hidden');
+            };
+            newImage.src = tempCanvas.toDataURL();
+        });
+        
+        // 取消裁剪
+        document.getElementById('cancelCrop').addEventListener('click', () => {
+            endCropMode();
+            document.getElementById('cropPanel').classList.add('hidden');
+            document.getElementById('toolPanel').classList.add('hidden');
+        });
+        
+        // 结束裁剪模式
+        function endCropMode() {
+            cropMode = false;
+            const cropArea = document.getElementById('cropArea');
+            if (cropArea) {
+                cropArea.remove();
+            }
+        }
+        
+        // 调整大小功能实现
+        function startResizeMode() {
+            if (!previewImage.src) return;
+            
+            const imgWidth = originalImage.width;
+            const imgHeight = originalImage.height;
+            
+            document.getElementById('resizeWidth').value = imgWidth;
+            document.getElementById('resizeHeight').value = imgHeight;
+            
+            const widthInput = document.getElementById('resizeWidth');
+            const heightInput = document.getElementById('resizeHeight');
+            const aspectRatioCheckbox = document.getElementById('maintainAspectRatio');
+            
+            const aspectRatio = imgWidth / imgHeight;
+            let previewTimeoutId = null;
+            
+            function updatePreview() {
+                const width = parseInt(widthInput.value);
+                const height = parseInt(heightInput.value);
+                
+                if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+                    previewImage.style.width = width + 'px';
+                    previewImage.style.height = height + 'px';
+                }
+            }
+            
+            function handleInput(e) {
+                const input = e.target;
+                const value = parseInt(input.value);
+                
+                if (!isNaN(value) && value > 0) {
+                    if (aspectRatioCheckbox.checked) {
+                        if (input === widthInput) {
+                            heightInput.value = Math.round(value / aspectRatio);
+                        } else {
+                            widthInput.value = Math.round(value * aspectRatio);
+                        }
+                    }
+                    
+                    if (previewTimeoutId) clearTimeout(previewTimeoutId);
+                    previewTimeoutId = setTimeout(updatePreview, 100);
+                }
+            }
+            
+            widthInput.addEventListener('input', handleInput);
+            heightInput.addEventListener('input', handleInput);
+        }
+        
+        // 应用调整大小
+        document.getElementById('applyResize').addEventListener('click', () => {
+            if (!previewImage.src) return;
+            
+            const width = parseInt(document.getElementById('resizeWidth').value);
+            const height = parseInt(document.getElementById('resizeHeight').value);
+            
+            if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+                alert('请输入有效的宽度和高度');
+                return;
+            }
+            
+            // 创建临时canvas进行调整大小
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 绘制调整大小后的图片
+            tempCtx.drawImage(originalImage, 0, 0, width, height);
+            
+            // 创建新图片
+            const newImage = new Image();
+            newImage.onload = () => {
+                // 更新当前图片
+                originalImage = newImage;
+                
+                // 更新预览
+                previewImage.src = newImage.src;
+                
+                // 添加到历史记录
+                addToHistory('调整图片大小', newImage.src);
+                
+                // 隐藏面板
+                document.getElementById('resizePanel').classList.add('hidden');
+                document.getElementById('toolPanel').classList.add('hidden');
+            };
+            newImage.src = tempCanvas.toDataURL();
+        });
+        
+        // 取消调整大小
+        document.getElementById('cancelResize').addEventListener('click', () => {
+            document.getElementById('resizePanel').classList.add('hidden');
+            document.getElementById('toolPanel').classList.add('hidden');
+        });
+        
+        // 旋转功能实现
+        document.getElementById('rotate90').addEventListener('click', () => {
+            rotateImage(90);
+        });
+        
+        document.getElementById('rotate180').addEventListener('click', () => {
+            rotateImage(180);
+        });
+        
+        document.getElementById('rotate270').addEventListener('click', () => {
+            rotateImage(270);
+        });
+        
+        // 翻转功能实现
+        document.getElementById('flipH').addEventListener('click', () => {
+            flipImage('horizontal');
+        });
+        
+        document.getElementById('flipV').addEventListener('click', () => {
+            flipImage('vertical');
+        });
+        
+        // 旋转图片函数
+        function rotateImage(degrees) {
+            if (!previewImage.src) return;
+            
+            // 创建临时canvas
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 根据旋转角度设置canvas尺寸
+            if (degrees === 90 || degrees === 270) {
+                tempCanvas.width = originalImage.height;
+                tempCanvas.height = originalImage.width;
+            } else {
+                tempCanvas.width = originalImage.width;
+                tempCanvas.height = originalImage.height;
+            }
+            
+            // 移动canvas原点到中心
+            tempCtx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+            
+            // 旋转
+            tempCtx.rotate(degrees * Math.PI / 180);
+            
+            // 绘制旋转后的图片
+            if (degrees === 90 || degrees === 270) {
+                tempCtx.drawImage(
+                    originalImage,
+                    -originalImage.width / 2,
+                    -originalImage.height / 2
+                );
+            } else {
+                tempCtx.drawImage(
+                    originalImage,
+                    -originalImage.width / 2,
+                    -originalImage.height / 2
+                );
+            }
+            
+            // 创建新图片
+            const newImage = new Image();
+            newImage.onload = () => {
+                // 更新当前图片
+                originalImage = newImage;
+                
+                // 更新预览
+                previewImage.src = newImage.src;
+                
+                // 添加到历史记录
+                addToHistory(`旋转图片 ${degrees}°`, newImage.src);
+            };
+            newImage.src = tempCanvas.toDataURL();
+        }
+        
+        // 翻转图片函数
+        function flipImage(direction) {
+            if (!previewImage.src) return;
+            
+            // 创建临时canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = originalImage.width;
+            tempCanvas.height = originalImage.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 根据翻转方向设置变换
+            if (direction === 'horizontal') {
+                tempCtx.translate(tempCanvas.width, 0);
+                tempCtx.scale(-1, 1);
+            } else if (direction === 'vertical') {
+                tempCtx.translate(0, tempCanvas.height);
+                tempCtx.scale(1, -1);
+            }
+            
+            // 绘制翻转后的图片
+            tempCtx.drawImage(originalImage, 0, 0);
+            
+            // 创建新图片
+            const newImage = new Image();
+            newImage.onload = () => {
+                // 更新当前图片
+                originalImage = newImage;
+                
+                // 更新预览
+                previewImage.src = newImage.src;
+                
+                // 添加到历史记录
+                addToHistory(`${direction === 'horizontal' ? '水平' : '垂直'}翻转图片`, newImage.src);
+            };
+            newImage.src = tempCanvas.toDataURL();
+        }
+
+    </script>
+</body>
+</html>
+
+        
